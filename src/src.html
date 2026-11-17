@@ -121,8 +121,8 @@ const WDAYS=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
 /* ============ formats ============ */
 const FORMATS={
   a4:{label:'A4 print',w:2480,h:3508,safe:{t:.05,b:.05,l:.065,r:.065},k:{info:1,kicker:1,lineup:1,big:1}},
-  post:{label:'IG post 4:5',w:1080,h:1350,safe:{t:.055,b:.055,l:.065,r:.065},k:{info:1.25,kicker:1.05,lineup:1.05,big:1}},
-  story:{label:'IG story 9:16',w:1080,h:1920,safe:{t:.12,b:.16,l:.075,r:.075},k:{info:1.3,kicker:1.15,lineup:1.15,big:1.1}}
+  post:{label:'IG post 4:5',w:1080,h:1350,safe:{t:.055,b:.055,l:.065,r:.065},k:{info:1.45,kicker:1.05,lineup:1.05,big:1}},
+  story:{label:'IG story 9:16',w:1080,h:1920,safe:{t:.12,b:.16,l:.075,r:.075},k:{info:1.55,kicker:1.15,lineup:1.15,big:1.1}}
 };
 const BLEED={w:2551,h:3579};// A4 + 3mm bleed each side at 300dpi
 
@@ -219,11 +219,22 @@ function derive(S){
 }
 
 /* ============ drawing helpers ============ */
+/* legibility rule: name, lineup, date and address must stay readable */
+let LEG=null;
+function regionStats(ctx,x0,y0,x1,y1){const T=ctx.getTransform(),xs=[],ys=[];for(const[x,y]of[[x0,y0],[x1,y0],[x0,y1],[x1,y1]]){xs.push(T.a*x+T.c*y+T.e);ys.push(T.b*x+T.d*y+T.f)}
+  const W=ctx.canvas.width,H=ctx.canvas.height,bx0=Math.max(0,Math.floor(Math.min(...xs))),by0=Math.max(0,Math.floor(Math.min(...ys))),bx1=Math.min(W,Math.ceil(Math.max(...xs))),by1=Math.min(H,Math.ceil(Math.max(...ys))),w=bx1-bx0,h=by1-by0;
+  if(w<2||h<2)return null;let d;try{d=ctx.getImageData(bx0,by0,w,h).data}catch(e){return null}const st=Math.max(1,Math.floor(Math.sqrt(w*h/1600)));let n=0,s=0,s2=0;
+  for(let y=0;y<h;y+=st)for(let x=0;x<w;x+=st){const i=(y*w+x)*4,l=(.2126*d[i]+.7152*d[i+1]+.0722*d[i+2])/255;s+=l;s2+=l*l;n++}const m=s/n;return{mean:m,std:Math.sqrt(Math.max(0,s2/n-m*m))}}
+function legible(ctx,fill,x0,y0,x1,y1,th){if(!LEG||typeof fill!=='string')return{fill,halo:null};const st=regionStats(ctx,x0,y0,x1,y1);if(!st)return{fill,halo:null};
+  let best=fill;if(Math.abs(lum(fill)-st.mean)<th){const P=LEG.P,c=[fill,P.ink,P.bg,P.accent,P.accent2,'#ffffff','#111111'];best=c.reduce((a,b)=>Math.abs(lum(b)-st.mean)>Math.abs(lum(a)-st.mean)?b:a)}
+  const busy=st.std>.17||Math.abs(lum(best)-st.mean)<th;return{fill:best,halo:busy?(lum(best)>.5?'rgba(0,0,0,.5)':'rgba(255,255,255,.55)'):null}}
 function txt(ctx,text,x,y,o){
   if(!text)return 0;font(ctx,o.f,o.size);ctx.textBaseline='alphabetic';ctx.textAlign='left';
   const tr=(o.tracking||0)*o.size;const chars=Array.from(text);
   const w=ctx.measureText(text).width+(tr?tr*(chars.length-1):0);
-  let x0=o.align==='center'?x-w/2:o.align==='right'?x-w:x;ctx.fillStyle=o.fill;
+  let x0=o.align==='center'?x-w/2:o.align==='right'?x-w:x;
+  const g=legible(ctx,o.fill,x0,y-o.size*.8,x0+w,y+o.size*.25,o.size<ctx.canvas.width*.03?.38:.3);ctx.fillStyle=g.fill;
+  if(g.halo){ctx.save();ctx.strokeStyle=g.halo;ctx.lineWidth=o.size*.16;ctx.lineJoin='round';if(!tr)ctx.strokeText(text,x0,y);else{let xx=x0;for(const ch of chars){ctx.strokeText(ch,xx,y);xx+=ctx.measureText(ch).width+tr}}ctx.restore();ctx.fillStyle=g.fill}
   if(!tr){ctx.fillText(text,x0,y);return w}
   for(const ch of chars){ctx.fillText(ch,x0,y);x0+=ctx.measureText(ch).width+tr}
   return w;
@@ -239,15 +250,18 @@ function wordmark(ctx,text,maxW,maxH,S,styleOverride){
   let size=maxW/wPer;if(size*hPer>maxH)size=maxH/hPer;size=Math.max(size,1);
   const w=size*wPer,h=size*hPer,tilt=(S.layout.tilt||0)*Math.PI/180;
   return{w,h,size,draw(cx,top,o={}){
-    const style=o.style||st,col=o.color||P.accent;ctx.save();ctx.translate(cx,top+h/2);if(tilt)ctx.rotate(tilt);ctx.scale(1,sy);
+    const style=o.style||st;let col=o.color||P.accent;ctx.save();ctx.translate(cx,top+h/2);if(tilt)ctx.rotate(tilt);ctx.scale(1,sy);
     font(ctx,f,size);ctx.textBaseline='alphabetic';ctx.textAlign='left';
     const a=asc/100*size,dd=desc/100*size,uh=h/sy,y0=-uh/2+padK*size/2+a,x0=-m.width/100*size/2,echoH=echoK*size;
+    const g=legible(ctx,col,x0,y0-a,x0+m.width/100*size,y0+dd,['outline','dots','echo'].includes(style)?.32:.25);col=g.fill;
+    if(g.halo&&!['bubble'].includes(style)){ctx.shadowColor=g.halo;ctx.shadowBlur=size*.12}
+    const fixC=c=>legible(ctx,c,x0,y0-a,x0+m.width/100*size,y0+dd,.25).fill;
     const fillT=(c,dx=0,dy=0)=>{ctx.fillStyle=c;ctx.fillText(text,x0+dx,y0+dy)};
     const strokeT=(c,lw,dx=0,dy=0)=>{ctx.strokeStyle=c;ctx.lineWidth=lw;ctx.lineJoin='round';ctx.lineCap='round';ctx.strokeText(text,x0+dx,y0+dy)};
     switch(style){
       case'outline':strokeT(col,size*.035);break;
       case'bubble':strokeT(col,size*.17);strokeT(P.bg,size*.1);fillT(P.bg);break;
-      case'split':{const cols=[col,P.accent2,P.ink];const R=rng(S.seeds.layout,'split');const ch=Array.from(text);let prev=-1;
+      case'split':{const cols=[col,fixC(P.accent2),fixC(P.ink)];const R=rng(S.seeds.layout,'split');const ch=Array.from(text);let prev=-1;
         for(let i=0;i<ch.length;i++){let k=Math.floor(R()*3);if(k===prev)k=(k+1)%3;prev=k;ctx.fillStyle=cols[k];ctx.fillText(ch[i],x0+ctx.measureText(ch.slice(0,i).join('')).width,y0)}break}
       case'shadow':fillT(P.accent2,size*.06,size*.06);fillT(col);break;
       case'echo':for(let i=3;i>=1;i--){ctx.globalAlpha=1-i*.2;strokeT(i%2?P.accent2:col,size*.022,0,i*echoH/3)}ctx.globalAlpha=1;fillT(col);break;
@@ -286,7 +300,7 @@ classic(ctx,W,H,s,S,K){
   const names=D.lineup,hasBox=S.art.kind!=='none'&&S.art.mask!=='full';
   let lS=W*.06*S.layout.lScale*K.lineup;const longest=Math.max(1,...names.map(n=>tw(ctx,n,fl,100)/100));lS=Math.min(lS,(s.R-s.L)*.82/longest);
   const avail=midBot-y,boxH=hasBox?avail*.42:0,lAvail=avail-boxH-(hasBox?kS*.6:0),LH=1.1;
-  if(names.length*lS*LH>lAvail)lS=Math.max(lAvail/(names.length*LH),1);
+  if(names.length*lS*LH>lAvail)lS=Math.max(lAvail/(names.length*LH),W*.024*K.lineup);
   const bH=names.length*lS*LH,ly=hasBox?y+kS*.2:y+(lAvail-bH)/2;const lc=S.layout.lineupColor==='accent'?P.accent:P.ink;
   ops.push(()=>names.forEach((n,i)=>txt(ctx,n,W/2,ly+(i+.8)*lS*LH,{f:fl,size:lS,fill:lc,align:'center'})));
   const by=ly+bH+kS*.6;
@@ -339,7 +353,7 @@ edge(ctx,W,H,s,S,K){
   const bd=bigDate(ctx,W,s,S,D,K);const infoArr=[...D.topLeft,...D.topRight];const infoTop=s.B-(bd?bd.h+iS*2:0)-infoArr.length*lh-iS*2;
   ops.push(()=>{lines(ctx,infoArr,x0,infoTop+iS,lh,iO);if(bd)bd.draw();txt(ctx,D.handle,x0,s.B,iO)});
   const names=D.lineup;let lS=W*.07*S.layout.lScale*K.lineup;const longest=Math.max(1,...names.map(n=>tw(ctx,n,fl,100)/100));lS=Math.min(lS,cw/longest);
-  const avail=infoTop-y-iS;if(names.length*lS*1.08>avail)lS=Math.max(1,avail/(names.length*1.08));
+  const avail=infoTop-y-iS;if(names.length*lS*1.08>avail)lS=Math.max(W*.024*K.lineup,avail/(names.length*1.08));
   const ly=y+(avail-names.length*lS*1.08)/2;const lc=S.layout.lineupColor==='accent'?P.accent:P.ink;
   ops.push(()=>names.forEach((n,i)=>txt(ctx,n,x0,ly+(i+.8)*lS*1.08,{f:fl,size:lS,fill:lc})));
   return{artBox:{x:x0,y:s.T,w:cw,h:s.B-s.T},draw:()=>ops.forEach(f=>f()),nameDraw:()=>nops.forEach(f=>f())};
@@ -395,7 +409,7 @@ inset(ctx,W,H,s,S,K){
   const infoTop=s.B-infoArr.length*lh;ops.push(()=>{lines(ctx,infoArr,s.L,infoTop+iS*.9,lh,iO);if(bd)bd.draw();else txt(ctx,D.handle,s.R,s.B,{...iO,align:'right'})});
   const names=D.lineup,cols=names.length>3?2:1,per=Math.ceil(names.length/cols),colW=(cw-(bd?cw*.28:0))/cols;
   let lS=W*.034*S.layout.lScale*K.lineup;const longest=Math.max(1,...names.map(n=>tw(ctx,n,fl,100)/100));lS=Math.min(lS,colW*.92/longest);
-  const ly0=box.y+box.h+lS*1.6,avail=infoTop-iS*1.5-ly0;if(per*lS*1.15>avail)lS=Math.max(1,avail/(per*1.15));const lc=S.layout.lineupColor==='accent'?P.accent:P.ink;
+  const ly0=box.y+box.h+lS*1.6,avail=infoTop-iS*1.5-ly0;if(per*lS*1.15>avail)lS=Math.max(W*.022*K.lineup,avail/(per*1.15));const lc=S.layout.lineupColor==='accent'?P.accent:P.ink;
   ops.push(()=>names.forEach((n,i)=>txt(ctx,n,s.L+Math.floor(i/per)*colW,ly0+(i%per)*lS*1.15,{f:fl,size:lS,fill:lc})));
   return{artBox:box,forceBox:true,draw:()=>ops.forEach(f=>f()),nameDraw:()=>nops.forEach(f=>f())};
 },
@@ -408,7 +422,7 @@ split(ctx,W,H,s,S,K){
   const info=[D.kicker,...D.extras,D.eventType,D.when,D.venue,D.address,D.handle].filter(Boolean);
   const infoW=info.length*lh,names=D.lineup,lc=S.layout.lineupColor==='accent'?P.accent:P.ink;
   const cx0=x0+wm.h+W*.02,availW=x1-infoW-iS*2-cx0;let lS=W*.036*S.layout.lScale*K.lineup;
-  if(names.length*lS*1.15>availW)lS=Math.max(1,availW/(names.length*1.15));const longest=Math.max(1,...names.map(n=>tw(ctx,n,fl,100)/100));lS=Math.min(lS,(s.B-s.T)*.9/longest);
+  if(names.length*lS*1.15>availW)lS=Math.max(W*.022*K.lineup,availW/(names.length*1.15));const longest=Math.max(1,...names.map(n=>tw(ctx,n,fl,100)/100));lS=Math.min(lS,(s.B-s.T)*.9/longest);
   ops.push(()=>{names.forEach((n,i)=>vtxt(ctx,n,cx0+(i+.85)*lS*1.15,s.B,{f:fl,size:lS,fill:lc},'up'));info.forEach((t,i)=>vtxt(ctx,t,x1-i*lh,s.T,{...iO,align:'right',fill:i<1+D.extras.length&&D.kicker?P.accent:P.ink},'up'))});
   return{artBox:box,forceBox:true,draw:()=>ops.forEach(f=>f()),nameDraw:()=>nops.forEach(f=>f())};
 },
@@ -417,7 +431,7 @@ paragraph(ctx,W,H,s,S,K){
   const iS=W*.0165*S.layout.iScale*K.info,ops=[],nops=[],iO={f:fi,size:iS,tracking:tr,fill:P.ink},x0=s.L+iS*2.6,cw=s.R-x0;
   const kS=W*.034*S.layout.lScale*K.kicker;const wm=wordmark(ctx,D.title,cw*.86*S.layout.wScale,(s.B-s.T)*.18,S);
   let lS=W*.033*S.layout.lScale*K.lineup;const tokens=D.lineup.map((n,i)=>(i?'+ ':'+')+n);let ls=wrapTokens(ctx,tokens,'  ',cw,fl,lS);
-  while(ls.length>9&&lS>W*.012){lS*=.9;ls=wrapTokens(ctx,tokens,'  ',cw,fl,lS)}
+  while(ls.length>9&&lS>W*.022*K.lineup){lS*=.9;ls=wrapTokens(ctx,tokens,'  ',cw,fl,lS)}
   const blockH=(D.kicker?kS*1.3:0)+wm.h+kS*.5+ls.length*lS*1.2+(D.extras.length?D.extras.length*kS:0);
   let y=s.T+Math.max(iS*3,((s.B-s.T)-blockH)*.42);const top=y;
   if(D.kicker){const yy=y+kS;ops.push(()=>txt(ctx,D.kicker,x0,yy,{f:fl,size:kS,fill:P.ink}));y+=kS*1.3}
@@ -479,7 +493,7 @@ stub(ctx,W,H,s,S,K){
   if(D.big){const bs=Math.min(W*.13*K.big,cw*.8/(tw(ctx,`${D.big.day}.${D.big.mm}`,f,100)/100)),yy=y+bs*.82;ops.push(()=>txt(ctx,`${D.big.day}.${D.big.mm}`,s.L,yy,{f,size:bs,fill:P.accent}));y+=bs*.95}
   const info=[D.when,[D.venue,D.address].filter(Boolean).join(', '),...D.extras].filter(Boolean),infoH=info.length*lh;
   const names=D.lineup;let lS=W*.034*S.layout.lScale*K.lineup;const longest=Math.max(1,...names.map(n=>tw(ctx,n,fl,100)/100));lS=Math.min(lS,cw*.95/longest);
-  const avail=bandTop-tooth*2-iS*1.5-infoH-y;if(names.length*lS*1.12>avail)lS=Math.max(1,avail/(names.length*1.12));
+  const avail=bandTop-tooth*2-iS*1.5-infoH-y;if(names.length*lS*1.12>avail)lS=Math.max(W*.022*K.lineup,avail/(names.length*1.12));
   const ly=y,lc=S.layout.lineupColor==='accent'?P.accent:P.ink;ops.push(()=>names.forEach((n,i)=>txt(ctx,n,s.L,ly+(i+.85)*lS*1.12,{f:fl,size:lS,fill:lc})));
   const iy=ly+names.length*lS*1.12+iS*1.4;ops.push(()=>lines(ctx,info,s.L,iy+iS,lh,iO));
   return{artBox:box,draw:()=>ops.forEach(f=>f()),nameDraw:()=>nops.forEach(f=>f())};
@@ -560,9 +574,9 @@ function fxWave(img,W,H,a,R){const src=new Uint32Array(img.data.buffer),out=new 
 function fxSlit(img,W,H,a,R){const d=new Uint32Array(img.data.buffer),n=1+Math.floor(R()*2);
   for(let b=0;b<n;b++){const y0=Math.floor(H*(.12+R()*.65)),len=Math.floor(a*H*.25*(.5+R())),drift=(R()-.5)*.25,row=d.slice(y0*W,y0*W+W);
     for(let y=y0+1;y<Math.min(H,y0+len);y++){let sh=Math.round((y-y0)*drift);sh=((sh%W)+W)%W;d.set(row.subarray(W-sh),y*W);d.set(row.subarray(0,W-sh),y*W+sh)}}}
-function fxSort(img,W,H,a,R){const d=new Uint32Array(img.data.buffer),lo=.85-a*.6,L=v=>(.2126*(v&255)+.7152*(v>>>8&255)+.0722*(v>>>16&255))/255,buf=new Float64Array(H),P32=4294967296,vertical=R()<.7;
+function fxSort(img,W,H,a,R,maxRun=0){const d=new Uint32Array(img.data.buffer),lo=.85-a*.6,L=v=>(.2126*(v&255)+.7152*(v>>>8&255)+.0722*(v>>>16&255))/255,buf=new Float64Array(H),P32=4294967296,vertical=R()<.7;
   const len=vertical?H:W,lines_=vertical?W:H,at=(i,j)=>vertical?j*W+i:i*W+j;
-  for(let i=0;i<lines_;i++){let j=0;while(j<len){while(j<len&&L(d[at(i,j)])<lo)j++;const st=j;while(j<len&&L(d[at(i,j)])>=lo)j++;const n=j-st;if(n<3)continue;
+  for(let i=0;i<lines_;i++){let j=0;while(j<len){while(j<len&&L(d[at(i,j)])<lo)j++;const st=j;while(j<len&&L(d[at(i,j)])>=lo&&(!maxRun||j-st<maxRun))j++;const n=j-st;if(n<3)continue;
     const arr=buf.subarray(0,n);for(let k=0;k<n;k++){const v=d[at(i,st+k)]>>>0;arr[k]=Math.floor(L(v)*255)*P32+v}arr.sort();for(let k=0;k<n;k++)d[at(i,st+k)]=arr[k]%P32}}}
 function fxRGB(img,W,H,a){const s=img.data,o=new Uint8ClampedArray(s),dd=Math.max(1,Math.round(a*W*.012));
   for(let y=0;y<H;y++){const r=y*W;for(let x=0;x<W;x++){const i=(r+x)*4;o[i]=s[(r+Math.max(0,x-dd))*4];o[i+2]=s[(r+Math.min(W-1,x+dd))*4+2]}}return new ImageData(o,W,H)}
@@ -577,12 +591,13 @@ function fxBlur(canvas,ctx,a){const W=canvas.width,H=canvas.height,div=2+a*26,t=
   const m=document.createElement('canvas');m.width=Math.min(W,t.width*4);m.height=Math.min(H,t.height*4);const mc=m.getContext('2d');mc.imageSmoothingQuality='high';mc.drawImage(t,0,0,m.width,m.height);
   ctx.save();ctx.globalAlpha=Math.min(1,.4+a*.8);ctx.imageSmoothingQuality='high';ctx.drawImage(m,0,0,W,H);ctx.restore()}
 function fxXerox(img,a){const d=img.data,c=1+a*1.4,lift=a*14;for(let i=0;i<d.length;i+=4){const l=(d[i]+d[i+1]+d[i+2])/3;for(let k=0;k<3;k++){const v=d[i+k]*(1-a*.5)+l*a*.5;d[i+k]=(v-128)*c+128+lift}}}
-function applyFx(canvas,ctx,S,u,group){
-  const f=S.fx,W=canvas.width,H=canvas.height,G=group==='distort'?['wave','slit','sort','rgb','blur','dither']:['bloom','xerox','grain'],A=k=>G.includes(k)?clamp((f[k]||0)*f.master,0,1.6):0,on=k=>A(k)>.005;
+const TEXT_CAP={name:{wave:.12,slit:0,sort:.22,rgb:.3,blur:.04,dither:0},text:{wave:.06,slit:0,sort:.12,rgb:.18,blur:.02,dither:0}};
+function applyFx(canvas,ctx,S,u,group,cap){
+  const f=S.fx,W=canvas.width,H=canvas.height,G=group==='distort'?['wave','slit','sort','rgb','blur','dither']:['bloom','xerox','grain'],A=k=>G.includes(k)?clamp((f[k]||0)*f.master,0,cap&&cap[k]!=null?cap[k]:1.6):0,on=k=>A(k)>.005;
   if(['wave','slit','sort','rgb'].some(on)){let img=ctx.getImageData(0,0,W,H);
     if(on('wave'))img=fxWave(img,W,H,A('wave'),rng(S.seeds.fx,'wave'));
     if(on('slit'))fxSlit(img,W,H,A('slit'),rng(S.seeds.fx,'slit'));
-    if(on('sort'))fxSort(img,W,H,A('sort'),rng(S.seeds.fx,'sort'));
+    if(on('sort'))fxSort(img,W,H,A('sort'),rng(S.seeds.fx,'sort'),cap?Math.round(H*.035):0);
     if(on('rgb'))img=fxRGB(img,W,H,A('rgb'));
     ctx.putImageData(img,0,0)}
   if(on('blur'))fxBlur(canvas,ctx,A('blur'));
@@ -594,7 +609,7 @@ function applyFx(canvas,ctx,S,u,group){
 
 /* ============ render ============ */
 function renderPoster(canvas,fk,S){
-  const F=FORMATS[fk],W=canvas.width,H=canvas.height,u=W/1000,ctx=canvas.getContext('2d',{willReadFrequently:true});
+  LEG=null;const F=FORMATS[fk],W=canvas.width,H=canvas.height,u=W/1000,ctx=canvas.getContext('2d',{willReadFrequently:true});
   const s={L:F.safe.l*W,R:W-F.safe.r*W,T:F.safe.t*H,B:H-F.safe.b*H};
   ctx.save();ctx.setTransform(1,0,0,1,0,0);ctx.globalAlpha=1;ctx.globalCompositeOperation='source-over';ctx.fillStyle=S.colour.bg;ctx.fillRect(0,0,W,H);
   const LAY=LAYOUTS[S.layout.kind]||LAYOUTS.classic;let plan=LAY(ctx,W,H,s,S,F.k);
@@ -610,11 +625,13 @@ function renderPoster(canvas,fk,S){
     if(ink!==P.ink||accent!==P.accent){S={...S,colour:{...P,ink,accent}};const keep=plan.postArt;plan=LAY(ctx,W,H,s,S,F.k)}}
   if(S.art.overlay&&OVERLAY[S.art.overlay])OVERLAY[S.art.overlay](ctx,W,H,S,u,rng(S.seeds.art,'ov'),artC,box);
   const tg=S.fx.target;
-  if(tg==='art')applyFx(canvas,ctx,S,u,'distort');
+  applyFx(canvas,ctx,S,u,'distort');
+  LEG={P:S.colour};
   plan.nameDraw();
-  if(tg==='name')applyFx(canvas,ctx,S,u,'distort');
+  if(tg==='name'||tg==='all')applyFx(canvas,ctx,S,u,'distort',TEXT_CAP.name);
   plan.draw();drawStickers(ctx,W,H,s,S,derive(S));
-  if(tg!=='art'&&tg!=='name')applyFx(canvas,ctx,S,u,'distort');
+  LEG=null;
+  if(tg==='all')applyFx(canvas,ctx,S,u,'distort',TEXT_CAP.text);
   drawFrame(ctx,W,H,S,u);
   applyFx(canvas,ctx,S,u,'finish');
   ctx.restore();
@@ -767,7 +784,7 @@ function buildUI(){
   cSeg(b,'frame','layout.frame',[['none','none'],['border','border'],['marks','crop marks']]);
   cSeg(b,'extra lines','layout.extrasStyle',[['text','as text'],['stickers','as stickers']]);
   cSeg(b,'lineup colour','layout.lineupColor',[['ink','ink'],['accent','accent']]);
-  cRange(b,'name size','layout.wScale',.4,1.3,.01);cRange(b,'lineup size','layout.lScale',.4,1.6,.01);cRange(b,'info size','layout.iScale',.5,2,.01);
+  cRange(b,'name size','layout.wScale',.4,1.3,.01);cRange(b,'lineup size','layout.lScale',.4,1.6,.01);cRange(b,'info size','layout.iScale',.85,2,.01);
   cRange(b,'tilt','layout.tilt',-20,20,1,v=>v+'°');
 
   b=sec('Type','type',()=>F_(S.type.wordmark).label);
@@ -809,7 +826,7 @@ function buildUI(){
   cRange(b,'chaos dial','fx.master',0,2,.01,v=>'×'+v.toFixed(2));
   for(const[k,l]of[['wave','wave warp'],['slit','slit smear'],['sort','pixel sort'],['rgb','rgb split'],['blur','soft focus'],['dither','dither'],['bloom','bloom'],['xerox','photocopy'],['grain','grain']])cRange(b,l,'fx.'+k,0,1,.01);
   cSeg(b,'distort','fx.target',[['art','art only'],['name','art + name'],['all','everything']]);
-  b.append(el('div',{className:'hint',textContent:'warp, smear, sort, rgb, soft focus and dither hit what you pick here. bloom, photocopy and grain cover the whole poster'}));
+  b.append(el('div',{className:'hint',textContent:'effects hit the art at full strength. the name and the lineup, date and address only get a light version, so they always stay readable'}));
   const fb=el('div',{className:'btns'});fb.append(btn('reroll effects','same settings, new randomness',()=>{S.seeds.fx=newSeed();commit(true)}),btn('all off','',()=>{for(const k of['wave','slit','sort','rgb','blur','bloom','dither','xerox','grain'])S.fx[k]=0;sync();commit(true)}));b.append(fb);
 
   b=sec('Export',null,()=>'pdf · png · zip');
