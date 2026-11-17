@@ -1,35 +1,26 @@
 # Basement Poster Machine
 
-A one-page poster generator for [@basement.ldn](https://instagram.com/basement.ldn) parties. You type in the party details once, shuffle until the look feels right, and export everything:
+A generative poster tool for [@basement.ldn](https://instagram.com/basement.ldn) parties. Type in the lineup once, shuffle until the vibe feels right, and download matching posters for print and Instagram.
 
-- A4 print PDF (optionally with 3 mm bleed) and PNG
-- Instagram post (1080×1350)
-- Instagram story (1080×1920)
-- all of them together as one zip
+**Try it:** https://posle-zavtra.github.io/basement-poster-machine/
 
-It's a single `index.html` with no build step and no server. Open it in a browser, or use the GitHub Pages link.
+## What it does
 
-## How to use it
+- **One set of party details, every format:** A4 print (PDF/PNG), Instagram post (1080×1350) and Instagram story (1080×1920), all matching.
+- **Shuffle with a mood:** day ↔ night, soft ↔ harsh and clean ↔ chaos sliders steer 12 layouts, dozens of fonts, generative art and effects.
+- **Lock what you like:** keep a section fixed while the rest reshuffles.
+- **Like / dislike:** the shuffle learns what you like. Liked looks are saved so you can come back to them.
+- **Poster codes:** copy a code to reuse a look later with a new lineup.
+- **Your own photos and fonts:** drop them in. They stay in your browser.
 
-1. **Party:** fill in the kicker, name, date, time, venue and lineup.
-2. **Vibe:** drag day ↔ night, soft ↔ harsh and clean ↔ chaos. Press **space** or **SHUFFLE** for new options in that mood.
-3. **Lock** a section to keep it while the rest shuffles. **↻** on a section shuffles only that section.
-4. **♥ like / ✕ not for me** (keys `L` / `X`): likes are saved, and future shuffles lean towards what you like.
-5. **#** gives you a poster code. Paste a code to get that look back later. Party details aren't included in the code, so you can reuse a look with a new lineup.
-6. **Your own fonts and photos:** drop them into the tool. They stay in your browser and are never uploaded anywhere.
+## Use
+
+Open `index.html` in any browser, or use the link above. There's nothing to install. Press **space** to shuffle, **L** to like, **X** to skip.
 
 ## Fonts
 
-Only open-licence fonts ship in this repo: [Geist](https://github.com/vercel/geist-font) and [Space Mono](https://github.com/googlefonts/spacemono), both under the SIL Open Font License (see `fonts/*/OFL.txt`). The other built-in fonts load from Google Fonts. Please don't commit commercial fonts to this repo. Load them locally in the tool instead.
+Only the open-licence fonts [Geist](https://github.com/vercel/geist-font) and [Space Mono](https://github.com/googlefonts/spacemono) are bundled (SIL OFL, see `fonts/`). The other built-in fonts load from Google Fonts. Please don't commit commercial fonts here: load them in the tool instead.
 
 ## Editing
 
-The editable source is `src/src.html`. To rebuild `index.html` with the fonts embedded:
-
-```sh
-python3 src/build.py
-```
-
-## Notes
-
-- Likes and the short `BSMT-` codes are shared through a database only in the hosted Claude version of the tool. On GitHub Pages they're stored in each person's own browser. The long codes (`B2.…`) work anywhere.
+The source is `src/src.html`. Run `python3 src/build.py` to rebuild `index.html` with the fonts embedded.
