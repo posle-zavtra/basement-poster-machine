@@ -246,7 +246,7 @@ const DEFAULT={
   fx:{master:1,wave:0,slit:0,sort:.35,rgb:.25,blur:0,bloom:.35,dither:0,xerox:0,grain:.35,target:'name'},
   export:{bleed:false},
   prefs:{learn:true,pool:[]},
-  dj:{v:2,id:null,base:null,seeds:null,cseed:null,stampSeed:null,colour:'orig',cvar:'',pc:null,vibe:null,frame:null,overlay:null,target:null,name:1,lineup:1,info:1,scale:1,px:0,py:0,fx:null}
+  dj:{v:2,id:null,base:null,seeds:null,cseed:null,stampSeed:null,stampInk:null,colour:'orig',cvar:'',pc:null,vibe:null,frame:null,overlay:null,target:null,name:1,lineup:1,info:1,scale:1,px:0,py:0,fx:null}
 };
 function deepMerge(base,over){if(!over||typeof over!=='object')return base;for(const k in base){if(over[k]===undefined)continue;if(base[k]&&typeof base[k]==='object'&&!Array.isArray(base[k]))base[k]=deepMerge(base[k],over[k]);else base[k]=over[k]}return base}
 let S=deepMerge(clone(DEFAULT),ls.get('bpm-state'));S.prefs.pool=[];
@@ -702,7 +702,9 @@ function drawStamp(ctx,W,H,S,u){const sel=S.art.stamp;if(!sel||sel==='none')retu
   for(let y=0;y<sh;y++)for(let x=0;x<sw;x++){const i=(y*sw+x)*4;if(!d[i+3])continue;sd=Math.imul(sd,1664525)+1013904223>>>0;const sp=(sd>>>8)/16777216,bl=N(x*k,y*k),fine=N(x*k*7+50,y*k*7);
     const th=.5+(E(x*k*4,y*k*4)-.5)*.7;let a=d[i+3]/255>th?1:0;a*=(bl<press?.72:1)*(fine<.16?.45:1);if(sp<.02)a=0;d[i+3]=a*245}
   g.putImageData(id,0,0);g.globalCompositeOperation='source-in';
-  const red='#d42a1e',col=S.art.stampInk==='palette'||Math.abs(lum(red)-lum(P.bg))<.12?[P.accent,P.ink,P.accent2].reduce((a,b)=>Math.abs(lum(b)-lum(P.bg))>Math.abs(lum(a)-lum(P.bg))+.12?b:a):red;
+  const INK={red:'#d42a1e',black:'#141414',white:'#f6f3ec',indigo:'#26307a',gold:'#b8892e'},far=(a,b)=>Math.abs(lum(a)-lum(b)),palC=[P.accent,P.ink,P.accent2].reduce((a,b)=>far(b,P.bg)>far(a,P.bg)+.12?b:a);
+  let inkSel=S.art.stampInk||'red';if(inkSel==='random'){const ok=Object.keys(INK).filter(k=>far(INK[k],P.bg)>.25);inkSel=ok.length?pick(R,ok.concat(ok.includes('red')?['red','red']:[])):'palette'}
+  const col=inkSel==='palette'?palC:far(INK[inkSel]||INK.red,P.bg)<.08?palC:(INK[inkSel]||INK.red);
   g.fillStyle=col;g.fillRect(0,0,sw,sh);
   // drop it where the poster is quietest (it lands after the text, so it looks for empty space), a little crooked
   const mx=sw*.6,my=sh*.6,cand=[];for(const fx of[.1,.3,.5,.7,.9])for(const fy of[.08,.25,.5,.75,.92])cand.push([clamp(fx*W,mx+W*.03,W-mx-W*.03),clamp(fy*H,my+H*.03,H-my-H*.03)]);
@@ -794,7 +796,7 @@ function genType(R,V){
 }
 function genLayout(R,V){const ph=artImg?1:0;return{kind:weighted(R,tW('layout',poolOnly({classic:1.1-V.chaos*.4,wall:.6,edge:.55,echo:.35+V.chaos*.4,scatter:V.chaos*1.1,rails:.7+V.chaos*.3,inset:.6+ph*.6,split:.45+ph*.6,paragraph:.7,boxed:.6,collage:.4+V.chaos*.4+ph*.8,stub:.55}))),frame:weighted(R,tW('frame',{none:1.6,border:.35,marks:.45})),extrasStyle:S.layout.extrasStyle,lineupColor:R()<.6?'ink':'accent',wScale:1,lScale:1,iScale:1,tilt:V.chaos>.45&&R()<V.chaos*.6?Math.round((R()-.5)*16*V.chaos):0}}
 function genArt(R,V){const kinds={none:.25+(1-V.chaos)*.3,blobs:1,rings:.8,houses:.7,flow:.5+V.chaos*.5,type:.5,checker:.35,brush:.6};if(artImg)kinds.upload=3;
-  return{kind:weighted(R,tW('art',kinds)),mask:weighted(R,tW('mask',{full:.9+V.chaos,pill:.7,circle:.5,arch:.5,blob:.3+V.chaos*.5})),opacity:+(.65+R()*.35).toFixed(2),scale:+(.8+R()*.6).toFixed(2),duotone:S.art.duotone,overlay:weighted(R,tW('overlay',{none:1.6,scribble:.2+V.chaos*.6,stars:.25,trace:artImg?.7:.15})),px:0,py:0,stamp:weighted(R,tW('stamp',{none:1.6,random:1})),stampFrame:'auto',stampStyle:'auto',stampInk:'red',stampSeed:Math.floor(R()*1e9)}}
+  return{kind:weighted(R,tW('art',kinds)),mask:weighted(R,tW('mask',{full:.9+V.chaos,pill:.7,circle:.5,arch:.5,blob:.3+V.chaos*.5})),opacity:+(.65+R()*.35).toFixed(2),scale:+(.8+R()*.6).toFixed(2),duotone:S.art.duotone,overlay:weighted(R,tW('overlay',{none:1.6,scribble:.2+V.chaos*.6,stars:.25,trace:artImg?.7:.15})),px:0,py:0,stamp:weighted(R,tW('stamp',{none:1.6,random:1})),stampFrame:'auto',stampStyle:'auto',stampInk:'random',stampSeed:Math.floor(R()*1e9)}}
 function genFx(R,V){const c=V.chaos,h=V.harsh,on=(k,p,lo,hi)=>{p=clamp(p*tm('fx:'+k+':on')/tm('fx:'+k+':off'),.02,.95);return R()<p?+(lo+R()*(hi-lo)).toFixed(2):0};
   return{master:1,wave:on('wave',.12+c*.35,.1,.2+.5*c),slit:on('slit',.08+c*.3,.15,.6),sort:on('sort',.12+c*.45,.15,.4+.5*c),rgb:on('rgb',.2+c*.4,.1,.6),bloom:on('bloom',.3+V.night*.3,.15,.6),dither:on('dither',.06+h*.22,.15,.7),blur:on('blur',.06+(1-h)*.14,.2,.8),xerox:on('xerox',.08+h*.2,.2,.8),grain:+(.12+R()*.4*(.5+h)).toFixed(2),target:weighted(R,tW('target',{art:.45,name:.4+V.chaos*.2,all:.1+V.chaos*.15}))}}
 const ALL_LAYOUTS=[['classic','classic'],['echo','echo'],['wall','wall'],['edge','edge'],['scatter','scatter'],['rails','rails'],['inset','inset'],['split','split'],['paragraph','run-in'],['boxed','boxed'],['collage','collage'],['stub','stub']];
@@ -922,7 +924,7 @@ function buildUI(){
   cSeg(b,'stairs seal','art.stamp',[['none','none'],['random','random'],['steps','steps'],['door','door'],['spiral','spiral'],['ladder','ladder'],['twin','two flights'],['arrow','arrow']]);
   cSeg(b,'seal shape','art.stampFrame',[['auto','auto'],['oval','oval'],['rounded','rounded'],['square','square'],['circle','circle']]);
   cSeg(b,'seal style','art.stampStyle',[['auto','auto'],['solid','solid'],['outline','outline']]);
-  cSeg(b,'seal ink','art.stampInk',[['red','seal red'],['palette','palette']]);
+  cSeg(b,'seal ink','art.stampInk',[['random','random'],['red','red'],['black','black'],['white','white'],['indigo','indigo'],['gold','gold'],['palette','palette']]);
   {const r=el('div',{className:'btns'});r.append(btn('new seal ↻','new stairs, position and ink',()=>{S.art.stampSeed=newSeed();commit(true)}));b.append(r)}
   cRange(b,'opacity','art.opacity',0,1,.01);cRange(b,'scale','art.scale',.4,2.5,.01);
   cSeg(b,'image tint','art.duotone',[[true,'palette'],[false,'original']]);
@@ -1100,7 +1102,7 @@ function djLookFrom(base,d){const L=clone(base),o={};
   const cv=d.cvar||({swap:'swap',invert:'invert',flip:'flip'}[d.colour]||'');
   if(cv==='swap')[c.accent,c.accent2]=[c.accent2,c.accent];else if(cv==='invert')[c.bg,c.ink]=[c.ink,c.bg];else if(cv==='flip')[c.bg,c.accent]=[c.accent,c.bg];
   o.colour=c;
-  const a=deepMerge(clone(DEFAULT.art),L.art);if(a.kind==='upload'){a.scale*=d.scale||1;a.px=d.px||0;a.py=d.py||0}if(d.overlay)a.overlay=d.overlay;if(d.stampSeed)a.stampSeed=d.stampSeed;o.art=a;
+  const a=deepMerge(clone(DEFAULT.art),L.art);if(a.kind==='upload'){a.scale*=d.scale||1;a.px=d.px||0;a.py=d.py||0}if(d.overlay)a.overlay=d.overlay;if(d.stampSeed)a.stampSeed=d.stampSeed;if(d.stampInk)a.stampInk=d.stampInk;o.art=a;
   const f=deepMerge(clone(DEFAULT.fx),L.fx);if(d.vibe)f.master=clamp(f.master*(.3+1.4*o.vibe.chaos)/(.3+1.4*bV.chaos),0,2);if(d.target)f.target=d.target;
   if(d.fx)for(const k in d.fx)f[k]=d.fx[k]/Math.max(.01,f.master);o.fx=f;
   o.seeds=Object.assign(clone(DEFAULT.seeds),L.seeds||{},d.seeds||{});return o}
@@ -1184,7 +1186,7 @@ function buildDjUI(){const pct=v=>Math.round(v*100)+'%';
   photoRows.push(djRange(b,'photo size',()=>S.dj.scale||1,v=>djSet('scale',v),()=>.7,()=>1.6,pct),djRange(b,'photo ↔',()=>S.dj.px||0,v=>djSet('px',v),()=>-1,()=>1,v=>v.toFixed(2)),djRange(b,'photo ↕',()=>S.dj.py||0,v=>djSet('py',v),()=>-1,()=>1,v=>v.toFixed(2)));
   {const r=el('div',{className:'btns'});r.append(btn('new pattern','same art, new randomness',()=>djSet('seeds',Object.assign({},S.dj.seeds||{},{art:newSeed()}),true)));b.append(r);genRows.push(r)}
   segRow(b,'marks on top',[['none','none'],['scribble','scribble'],['stars','stars'],['trace','trace lines']],()=>{const L=djL();return L?L.art.overlay:''},v=>djSet('overlay',v,true));
-  {const r=el('div',{className:'btns'});r.append(btn('new seal ↻','the stairs seal in a new spot, with new ink',()=>djSet('stampSeed',newSeed(),true)));b.append(r);syncers.push(()=>{const L=djL();r.style.display=L&&L.art.stamp&&L.art.stamp!=='none'?'':'none'})}
+  {const ir=segRow(b,'seal ink',[['red','red'],['black','black'],['white','white'],['indigo','indigo'],['gold','gold'],['palette','palette']],()=>{const L=djL();return L?L.art.stampInk:''},v=>djSet('stampInk',v,true));const r=el('div',{className:'btns'});r.append(btn('new seal ↻','the stairs seal in a new spot, with new ink',()=>djSet('stampSeed',newSeed(),true)));b.append(r);syncers.push(()=>{const L=djL(),on=L&&L.art.stamp&&L.art.stamp!=='none';r.style.display=ir.style.display=on?'':'none'})}
   syncers.push(()=>{const L=djL(),ph=!!L&&L.art.kind==='upload';for(const r of photoRows)r.style.display=ph?'':'none';for(const r of genRows)r.style.display=ph?'none':''});
   // effects: start at the look's own values, move within a limited range
   b=djSec('Effects',()=>{const L=djL();return L?DJFX.filter(([,ks])=>fxEff(L.fx,ks[0])>.01).length+' on':''});
