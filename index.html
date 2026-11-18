@@ -108,7 +108,9 @@ body:not(.dj) .dj-only{display:none!important}
 .djgrid{grid-template-columns:repeat(4,1fr)}
 .djtop{display:grid;grid-template-columns:34px 1fr 34px;gap:6px;align-items:center;padding:4px 8px}.djtop .btn{font-size:16px;padding:2px 0}
 .djinfo{text-align:center;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.djbig{display:grid;grid-template-columns:2fr 1fr;gap:6px;padding:4px 8px 8px}.djbig .btn{font-size:14px;padding:10px;font-weight:700;letter-spacing:.06em}
+.djrow{display:flex;gap:6px;padding:2px 8px 4px;align-items:center}.djrow .btn:first-child{flex:1;text-align:left}
+.djacc{display:none;border-top:1px solid var(--line);border-bottom:1px solid var(--line);margin:4px 0;max-height:420px;overflow:auto}.djacc.open{display:block}
+.djall{grid-template-columns:repeat(4,1fr)}
 .lk.dj canvas{width:100%;display:block;border:1px solid var(--b);cursor:pointer;background:#fff}
 .lk.dj canvas:hover{outline:2px solid var(--b)}.lk.dj.on canvas{outline:3px solid var(--b);outline-offset:1px}
 .lk .nm{display:block;font-size:9px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -130,7 +132,7 @@ body:not(.dj) .dj-only{display:none!important}
     <button class="btn" id="dlall" title="download A4 pdf + IG post + IG story as one zip">download all</button>
   </div>
   <div id="view"></div>
-  <div id="rate"><button class="btn d-only" id="dislike" title="not for me: remember it and shuffle again (key: x)">✕ not for me</button><button class="btn primary dj-only" id="djsave" title="keep this look in my looks">♥ save look</button><button class="btn d-only" id="djstar" title="send this look to the DJ mode">★ for DJs</button><button class="btn primary d-only" id="like" title="I like this look: save it and teach the shuffle (key: l)">♥ like</button><span id="codewrap"><button class="btn" id="codetoggle" title="poster code: copy or paste a code to reuse this look">#</button><span id="codebox"><input type="text" id="code" placeholder="poster code" spellcheck="false" title="the code for this look. paste a code here and press apply to bring a look back"><button class="btn" id="getcode" title="copy a code for this look">copy code</button><button class="btn" id="copylong" style="display:none" title="a longer code that works on its own, even outside this tool">long code</button><button class="btn" id="usecode" title="apply the code in the box">apply</button></span></span></div>
+  <div id="rate"><button class="btn d-only" id="dislike" title="not for me: remember it and shuffle again (key: x)">✕ not for me</button><button class="btn primary dj-only" id="djsave" title="keep this look in your likes">♥ like</button><button class="btn d-only" id="djstar" title="send this look to the DJ mode">★ for DJs</button><button class="btn primary d-only" id="like" title="I like this look: save it and teach the shuffle (key: l)">♥ like</button><span id="codewrap"><button class="btn" id="codetoggle" title="poster code: copy or paste a code to reuse this look">#</button><span id="codebox"><input type="text" id="code" placeholder="poster code" spellcheck="false" title="the code for this look. paste a code here and press apply to bring a look back"><button class="btn" id="getcode" title="copy a code for this look">copy code</button><button class="btn" id="copylong" style="display:none" title="a longer code that works on its own, even outside this tool">long code</button><button class="btn" id="usecode" title="apply the code in the box">apply</button></span></span></div>
   <div id="foot"><span id="status">ready</span><span class="dj-only">pick a look on the left, fill in your party, download</span><span class="d-only">lock a section to keep it · ↻ on a section shuffles just that part · drop an image here to use it as art</span></div>
 </main>
 <script>
@@ -622,11 +624,13 @@ const BAYER=[0,8,2,10,12,4,14,6,3,11,1,9,15,7,13,5];
 function fxDither(img,W,H,a,P,u){const d=img.data,pal=[P.bg,P.ink,P.accent,P.accent2].map(hexToRgb).sort((x,y)=>(x[0]*.2+x[1]*.7+x[2]*.1)-(y[0]*.2+y[1]*.7+y[2]*.1)),n=pal.length,blk=Math.max(1,Math.round(u*(1+a*5)));
   for(let by=0,yy=0;by<H;by+=blk,yy++)for(let bx=0,xx=0;bx<W;bx+=blk,xx++){const ci=(Math.min(H-1,by+(blk>>1))*W+Math.min(W-1,bx+(blk>>1)))*4,l=(.2126*d[ci]+.7152*d[ci+1]+.0722*d[ci+2])/255,t=l*(n-1),i0=Math.floor(t),fr=t-i0,th=(BAYER[(xx&3)+((yy&3)<<2)]+.5)/16,c=pal[Math.min(n-1,fr>th?i0+1:i0)];
     for(let y=by;y<Math.min(H,by+blk);y++)for(let x=bx;x<Math.min(W,bx+blk);x++){const i=(y*W+x)*4;d[i]=c[0];d[i+1]=c[1];d[i+2]=c[2]}}}
-function fxGrain(img,a,seed){// grain size is a fixed share of the poster width, so it looks the same in the preview, the thumbnails and the full-size export
-  const d=img.data,W=img.width,H=img.height,n=a*80,cell=Math.max(1,W/760),sd=seed>>>0||1,inv=1/cell;
-  const row=new Float32Array(Math.ceil(W*inv)+2);let lastCy=-1;
-  for(let y=0;y<H;y++){const cy=Math.floor(y*inv);if(cy!==lastCy){lastCy=cy;for(let cx=0;cx<row.length;cx++){let h=Math.imul(cx+1,374761393)^Math.imul(cy+1,668265263)^sd;h=Math.imul(h^h>>>13,1274126177);h^=h>>>16;row[cx]=((h>>>8)/16777216-.5)*n}}
-    for(let x=0,i=y*W*4;x<W;x++,i+=4){const v=row[(x*inv)|0];d[i]+=v;d[i+1]+=v;d[i+2]+=v}}}
+function fxGrain(img,a,seed){// film-like grain sized as a share of the poster width, so preview, thumbnails and export match
+  const d=img.data,W=img.width,H=img.height,n=a*95,cell=Math.max(1,W/330),inv=1/cell,sd=seed>>>0||1,cw=Math.ceil(W*inv)+2;
+  const hv=(cx,cy)=>{let h=Math.imul(cx+1,374761393)^Math.imul(cy+1,668265263)^sd;h=Math.imul(h^h>>>13,1274126177);h^=h>>>16;return(h>>>8)/16777216-.5};
+  let r0=new Float32Array(cw),r1=new Float32Array(cw),cy0=-1;let s2=sd;
+  for(let y=0;y<H;y++){const fy=y*inv,cy=Math.floor(fy),ty=fy-cy;if(cy!==cy0){cy0=cy;for(let cx=0;cx<cw;cx++){r0[cx]=hv(cx,cy);r1[cx]=hv(cx,cy+1)}}
+    for(let x=0,i=y*W*4;x<W;x++,i+=4){const fx=x*inv,cx=fx|0,tx=fx-cx,top=r0[cx]+(r0[cx+1]-r0[cx])*tx,bot=r1[cx]+(r1[cx+1]-r1[cx])*tx;
+      s2=Math.imul(s2,1664525)+1013904223>>>0;const v=((top+(bot-top)*ty)*.8+((s2>>>8)/16777216-.5)*.45)*n;d[i]+=v;d[i+1]+=v;d[i+2]+=v}}}
 function fxBlur(canvas,ctx,a){const W=canvas.width,H=canvas.height,div=2+a*26,t=document.createElement('canvas');t.width=Math.max(2,Math.round(W/div));t.height=Math.max(2,Math.round(H/div));const tc=t.getContext('2d');tc.imageSmoothingQuality='high';tc.drawImage(canvas,0,0,t.width,t.height);
   const m=document.createElement('canvas');m.width=Math.min(W,t.width*4);m.height=Math.min(H,t.height*4);const mc=m.getContext('2d');mc.imageSmoothingQuality='high';mc.drawImage(t,0,0,m.width,m.height);
   ctx.save();ctx.globalAlpha=Math.min(1,.4+a*.8);ctx.imageSmoothingQuality='high';ctx.drawImage(m,0,0,W,H);ctx.restore()}
@@ -1029,8 +1033,8 @@ function djShuffle(){const ps=djPresets();if(!ps.length)return;const ids=new Set
 function djStep(dir){const ps=djPresets();if(!ps.length)return;let i=ps.findIndex(p=>p.id===S.dj.id);i=((i<0?0:i+dir)%ps.length+ps.length)%ps.length;djNext(ps[i],true)}
 // a DJ's own saved looks, on their device
 const djFav={get(){return ls.get('bpm-djfav')||[]},set(v){ls.set('bpm-djfav',v)}};
-function djSave(){if(!S.dj.base)return;const key=JSON.stringify(S.dj);if(djFav.get().some(f=>JSON.stringify(f.dj)===key)){status('already saved');return}
-  djFav.set([{id:'v'+Date.now().toString(36),at:new Date().toISOString(),dj:clone(S.dj)}].concat(djFav.get()));renderDjGrid();status('saved to my looks ♥')}
+function djSave(){if(!S.dj.base)return;const key=JSON.stringify(S.dj);if(djFav.get().some(f=>JSON.stringify(f.dj)===key)){status('already liked');return}
+  djFav.set([{id:'v'+Date.now().toString(36),at:new Date().toISOString(),dj:clone(S.dj)}].concat(djFav.get()));renderDjGrid();sync();status('liked ♥')}
 function djEnsure(){if(S.dj.base)return;const p=djPresets()[0];if(p)djUse(p)}
 async function unlock(pw){try{const h=[...new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode('bpm:'+pw)))].map(b=>b.toString(16).padStart(2,'0')).join('');if(h!==PW_HASH)return false;UNLOCKED=true;ls.set('bpm-unlock',PW_HASH);document.body.classList.add('unlocked');return true}catch(e){return false}}
 function setMode(m){if(m==='designer'&&!UNLOCKED)m='dj';MODE=m;ls.set('bpm-mode',m);document.body.classList.toggle('dj',m==='dj');document.body.classList.toggle('designer',m==='designer');
@@ -1050,8 +1054,8 @@ function buildModeSwitch(){const w=el('div',{id:'modesw'}),seg=el('div',{classNa
 let djGridEl=null,djInfoEl=null,djRmEl=null,djT=0;
 function renderDjGrid(){if(!djGridEl)return;clearTimeout(djT);djT=setTimeout(drawDjGrid,60)}
 function djInfo(){if(!djInfoEl)return;const ps=djPresets(),i=ps.findIndex(p=>p.id===S.dj.id);djInfoEl.textContent=ps.length?`${i<0?'custom':(ps[i].name||'look')} · ${i<0?'–':i+1} of ${ps.length}`:'no looks yet';djRmEl.style.display=UNLOCKED&&i>=0?'':'none'}
-async function drawDjGrid(){if(!djGridEl)return;const favs=djFav.get();djInfo();
-  djGridEl.innerHTML='';if(!favs.length){djGridEl.append(el('div',{className:'hint',textContent:'nothing saved yet. tap ♥ save when a look works'}));return}
+async function drawDjGrid(){if(!djGridEl)return;const favs=djFav.get();djInfo();drawAllLooks();
+  djGridEl.innerHTML='';if(!favs.length){djGridEl.append(el('div',{className:'hint',textContent:'tap ♥ like under the poster to keep a look here'}));return}
   for(const f of favs){const c=el('div',{className:'lk dj'+(JSON.stringify(f.dj)===JSON.stringify(S.dj)?' on':'')});const cv=el('canvas',{width:124,height:175,title:'use this look'});
     cv.onclick=()=>{S.dj=clone(f.dj);applyDj();sync();commit(true);renderDjGrid();status('look restored')};
     c.append(cv,btn('×','remove from my looks',()=>{djFav.set(djFav.get().filter(x=>x.id!==f.id));renderDjGrid()},''));djGridEl.append(c)}
@@ -1062,7 +1066,10 @@ function buildDjUI(){
   const b=sec('Look',null,()=>{const p=djPresets().find(x=>x.id===S.dj.id);return p?p.name||'':''});b.parentNode.classList.add('dj-only');
   {const top=el('div',{className:'djtop'});djInfoEl=el('span',{className:'djinfo'});
    top.append(btn('‹','previous look',()=>djStep(-1)),djInfoEl,btn('›','next look',()=>djStep(1)));b.append(top);
-   djRmEl=btn('designers: take this look out of the DJ mode','',()=>{const id=S.dj.id;djShuffle();djUnstar(id)},'btn mini');djRmEl.style.margin='0 8px';b.append(djRmEl)}
+   const acc=el('div',{className:'djacc'}),ah=btn('all looks ▸','',()=>{const o=acc.classList.toggle('open');ah.textContent=o?'all looks ▾':'all looks ▸';if(o)drawAllLooks()},'btn');
+   allEl=el('div',{className:'lkgrid djall'});acc.append(el('div',{className:'hint',textContent:"know what you want? pick it here instead of shuffling"}),allEl);
+   djRmEl=btn('× remove from DJ mode','designers only',()=>{const id=S.dj.id;djShuffle();djUnstar(id)},'btn mini');
+   const rw=el('div',{className:'djrow'});rw.append(ah,djRmEl);b.append(rw,acc)}
   syncers.push(djInfo);
   // photo
   const thumb=el('div',{className:'thumb'});const pr=el('div',{className:'row'});pr.append(el('label',{textContent:'photo'}),thumb);b.append(pr);
@@ -1080,16 +1087,21 @@ function buildDjUI(){
     e.addEventListener('change',()=>commit(true,false));syncers.push(()=>{if(!S.dj.base)return;const V=curV();if(document.activeElement!==e)e.value=V[k];v.textContent=pct(+V[k])});row(b,l,e,v)}}
   {const e=el('input',{type:'range',min:0,max:1,step:.01}),v=el('span',{className:'val'});const cur=()=>{if(!S.dj.base)return 0;const f=djLookFrom(S.dj.base,S.dj,S).fx;return clamp(f.grain*f.master,0,1)};
    e.addEventListener('input',()=>{v.textContent=pct(+e.value);djSet('grain',+e.value)});e.addEventListener('change',()=>commit(true,false));syncers.push(()=>{const g=cur();if(document.activeElement!==e)e.value=g;v.textContent=pct(g)});row(b,'grain',e,v)}
-  b.append(el('div',{className:'hint',textContent:'day/night and soft/harsh pick new colours. chaos turns the effects up or down'}));
   djR('name size','name',.85,1.15,.01,pct);
   djR('lineup size','lineup',.85,1.15,.01,pct);
   const bb=el('div',{className:'btns'});
   bb.append(btn('remix ↻','same look, new details: effects, pattern and small placement changes',()=>{djSet('seeds',{layout:newSeed(),art:newSeed(),fx:newSeed()},true)}),
     btn('reset look','undo your tweaks to this look',()=>{const p=djPresets().find(x=>x.id===S.dj.id);if(p)djUse(p)}));
   b.append(bb);
-  b.append(el('div',{className:'hint',textContent:'the name, lineup, date and address always stay readable, whatever you do with effects'}));
-  b.append(el('div',{className:'hint',innerHTML:'<b>my looks</b> · saved on this device'}));djGridEl=el('div',{className:'lkgrid djgrid'});b.append(djGridEl);
+  const lk=sec('Likes',null,()=>{const n=djFav.get().length;return n?n+' saved':''});lk.parentNode.classList.add('dj-only');
+  djGridEl=el('div',{className:'lkgrid djgrid'});lk.append(djGridEl);
   return b}
+let allEl=null;
+async function drawAllLooks(){if(!allEl||!allEl.parentNode.classList.contains('open'))return;const my=++allTok,ps=djPresets();allEl.innerHTML='';
+  const cvs=ps.map(p=>{const c=el('div',{className:'lk dj'+(S.dj.id===p.id?' on':'')});const cv=el('canvas',{width:124,height:175,title:p.name||''});cv.onclick=()=>{djNext(p,true);status(p.name||'look')};c.append(cv,el('span',{className:'nm',textContent:p.name||''}));allEl.append(c);return cv});
+  for(let i=0;i<ps.length;i++){if(my!==allTok)return;const L=djLookFrom(ps[i].look,Object.assign(clone(DEFAULT.dj),{photo:S.dj.photo}),S);
+    try{await ensureFonts([L.type.wordmark,L.type.lineup,L.type.info])}catch(e){}try{renderPoster(cvs[i],'a4',Object.assign(clone(S),L))}catch(e){}await new Promise(r=>setTimeout(r,0))}}
+let allTok=0;
 
 /* ============ keys + init ============ */
 document.addEventListener('keydown',e=>{const t=e.target,typing=/INPUT|TEXTAREA|SELECT/.test(t.tagName);
