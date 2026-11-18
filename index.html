@@ -111,6 +111,7 @@ body:not(.dj) .dj-only{display:none!important}
 .djrow{display:flex;gap:6px;padding:2px 8px 4px;align-items:center}.djrow .btn:first-child{flex:1;text-align:left}
 .djacc{display:none;border-top:1px solid var(--line);border-bottom:1px solid var(--line);margin:4px 0;max-height:420px;overflow:auto}.djacc.open{display:block}
 .djall{grid-template-columns:repeat(4,1fr)}
+.lkgrid>.hint{grid-column:1/-1;padding-left:0}
 .lk.dj canvas{width:100%;display:block;border:1px solid var(--b);cursor:pointer;background:#fff}
 .lk.dj canvas:hover{outline:2px solid var(--b)}.lk.dj.on canvas{outline:3px solid var(--b);outline-offset:1px}
 .lk .nm{display:block;font-size:9px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -237,10 +238,10 @@ const DEFAULT={
   fx:{master:1,wave:0,slit:0,sort:.35,rgb:.25,blur:0,bloom:.35,dither:0,xerox:0,grain:.35,target:'name'},
   export:{bleed:false},
   prefs:{learn:true,pool:[]},
-  dj:{id:null,base:null,seeds:null,cseed:null,vibe:null,grain:null,fx:1,colour:'orig',name:1,lineup:1,scale:1,px:0,py:0,photo:true}
+  dj:{id:null,base:null,seeds:null,cseed:null,vibe:null,grain:null,fxo:null,fx:1,colour:'orig',name:1,lineup:1,scale:1,px:0,py:0,photo:true}
 };
 function deepMerge(base,over){if(!over||typeof over!=='object')return base;for(const k in base){if(over[k]===undefined)continue;if(base[k]&&typeof base[k]==='object'&&!Array.isArray(base[k]))base[k]=deepMerge(base[k],over[k]);else base[k]=over[k]}return base}
-let S=deepMerge(clone(DEFAULT),ls.get('bpm-state'));
+let S=deepMerge(clone(DEFAULT),ls.get('bpm-state'));S.prefs.pool=[];
 let artImg=null,artImgURL=null;
 let viewMode=ls.get('bpm-view2')||'a4';
 
@@ -819,13 +820,11 @@ function buildUI(){
   b.parentNode.classList.add('d-only');tasteEl=el('div',{className:'hint'});b.append(tasteEl);
   cSeg(b,'learn from likes','prefs.learn',[[true,'on'],[false,'off']]);
   b.append(el('div',{className:'hint',textContent:'tap a thumbnail to bring that look back. likes and dislikes are saved with this tool, so Claude can read them later to tune the presets'}));
-  likesEl=el('div',{className:'lkgrid'});b.append(likesEl);b.append(el('div',{className:'hint',textContent:'☆ on a like sends it to the DJ mode. DJs only get those looks'}));{const cb=el('div',{className:'btns'});cb.append(btn('copy DJ looks file','for the GitHub version: copies the DJ looks as JSON',async()=>{const t=JSON.stringify(djPresets().map(p=>({id:p.id,name:p.name,look:p.look})));const ok=await copyText(t);status(ok?`copied ${djPresets().length} DJ looks`:'could not copy')}));b.append(cb)}
+  likesEl=el('div',{className:'lkgrid'});b.append(likesEl);
   {const sb=el('div',{className:'btns'});sb.append(btn('original look','the very first look the tool opened with',()=>{for(const k of['layout','type','colour','art','fx','seeds'])S[k]=clone(DEFAULT[k]);sync();commit(true);status('original look restored')}));b.append(sb)}
 
   b=sec('Layout','layout',()=>S.layout.kind);b.parentNode.classList.add('d-only');
   cSeg(b,'layout','layout.kind',ALL_LAYOUTS);
-  {const ch=el('div',{className:'chips'});for(const[v,t]of ALL_LAYOUTS){const x=el('button',{textContent:t});x.dataset.v=v;x.onclick=()=>{let p=(S.prefs.pool&&S.prefs.pool.length?S.prefs.pool:ALL_LAYOUTS.map(a=>a[0])).slice();p=p.includes(v)?p.filter(q=>q!==v):[...p,v];S.prefs.pool=p.length===ALL_LAYOUTS.length?[]:p;sync();commit()};ch.append(x)}
-    syncers.push(()=>{const p=S.prefs.pool&&S.prefs.pool.length?S.prefs.pool:null;for(const x of ch.children)x.classList.toggle('on',!p||p.includes(x.dataset.v))});row(b,'shuffle uses',ch)}
   cSeg(b,'frame','layout.frame',[['none','none'],['border','border'],['marks','crop marks']]);
   cSeg(b,'extra lines','layout.extrasStyle',[['text','as text'],['stickers','as stickers']]);
   cSeg(b,'lineup colour','layout.lineupColor',[['ink','ink'],['accent','accent']]);
@@ -861,7 +860,7 @@ function buildUI(){
   cSeg(b,'source','art.kind',[['none','none'],['blobs','blobs'],['rings','rings'],['houses','houses'],['flow','flow'],['brush','brush'],['type','type'],['checker','checker'],['upload','my photo']],v=>{if(v==='upload'&&!artImg)imgIn.click()});
   cSeg(b,'shape','art.mask',[['full','full'],['pill','pill'],['circle','circle'],['arch','arch'],['blob','blob']]);
   cSeg(b,'marks on top','art.overlay',[['none','none'],['scribble','scribble'],['stars','stars'],['trace','trace lines']]);
-  cRange(b,'opacity','art.opacity',0,1,.01);cRange(b,'scale','art.scale',.4,2.5,.01);cRange(b,'photo ↔','art.px',-1,1,.01);cRange(b,'photo ↕','art.py',-1,1,.01);
+  cRange(b,'opacity','art.opacity',0,1,.01);cRange(b,'scale','art.scale',.4,2.5,.01);
   cSeg(b,'image tint','art.duotone',[[true,'palette'],[false,'original']]);
   const imgIn=el('input',{type:'file',accept:'image/*'});imgIn.style.display='none';imgIn.onchange=()=>{if(imgIn.files[0])loadArtFile(imgIn.files[0]);imgIn.value=''};
   const ib=el('div',{className:'btns'});ib.append(btn('new pattern','same art type, new randomness',()=>{S.seeds.art=newSeed();commit(true)}));b.append(imgIn,ib);__updThumb();
@@ -1016,7 +1015,7 @@ function djLookFrom(base,d,S0){// base look + the few things DJs may change
   c.auto=true;o.colour=c;
   const a=deepMerge(clone(DEFAULT.art),L.art);a.scale*=d.scale;a.px=d.px;a.py=d.py;
   if(artImg&&d.photo)a.kind='upload';else if(a.kind==='upload')a.kind='blobs';o.art=a;
-  const f=deepMerge(clone(DEFAULT.fx),L.fx);const m=f.master*(d.vibe?(.3+1.4*V.chaos)/(.3+1.4*bV.chaos):1);f.master=clamp(d.fx<=1?m*d.fx:m+(d.fx-1)*Math.max(.6,m*.6),0,2);if(d.grain!=null)f.grain=d.grain/Math.max(.2,f.master);o.fx=f;
+  const f=deepMerge(clone(DEFAULT.fx),L.fx);const m=f.master*(d.vibe?(.3+1.4*V.chaos)/(.3+1.4*bV.chaos):1);f.master=clamp(d.fx<=1?m*d.fx:m+(d.fx-1)*Math.max(.6,m*.6),0,2);if(d.grain!=null)f.grain=d.grain/Math.max(.2,f.master);if(d.fxo)for(const k in d.fxo)f[k]=d.fxo[k]/Math.max(.2,f.master);o.fx=f;
   o.seeds=Object.assign(clone(DEFAULT.seeds),L.seeds||{},d.seeds||{});o.vibe=V;
   return o}
 function applyDj(){const d=S.dj;if(!d.base)return;Object.assign(S,djLookFrom(d.base,d,S))}
@@ -1087,6 +1086,11 @@ function buildDjUI(){
     e.addEventListener('change',()=>commit(true,false));syncers.push(()=>{if(!S.dj.base)return;const V=curV();if(document.activeElement!==e)e.value=V[k];v.textContent=pct(+V[k])});row(b,l,e,v)}}
   {const e=el('input',{type:'range',min:0,max:1,step:.01}),v=el('span',{className:'val'});const cur=()=>{if(!S.dj.base)return 0;const f=djLookFrom(S.dj.base,S.dj,S).fx;return clamp(f.grain*f.master,0,1)};
    e.addEventListener('input',()=>{v.textContent=pct(+e.value);djSet('grain',+e.value)});e.addEventListener('change',()=>commit(true,false));syncers.push(()=>{const g=cur();if(document.activeElement!==e)e.value=g;v.textContent=pct(g)});row(b,'grain',e,v)}
+  // a few more effects, each capped: text keeps its own light version, so it stays readable
+  for(const[l,keys]of[['glitch',['sort','slit']],['rgb split',['rgb']],['glow',['bloom']],['soft focus',['blur']],['photocopy',['xerox']]]){const e=el('input',{type:'range',min:0,max:1,step:.01}),v=el('span',{className:'val'});
+    const cur=()=>{if(!S.dj.base)return 0;const f=djLookFrom(S.dj.base,S.dj,S).fx;return clamp(f[keys[0]]*f.master,0,1)};
+    e.addEventListener('input',()=>{v.textContent=pct(+e.value);const o=Object.assign({},S.dj.fxo||{});keys.forEach((k,i)=>o[k]=+e.value*(i?.7:1));djSet('fxo',o)});
+    e.addEventListener('change',()=>commit(true,false));syncers.push(()=>{const g=cur();if(document.activeElement!==e)e.value=g;v.textContent=pct(g)});row(b,l,e,v)}
   djR('name size','name',.85,1.15,.01,pct);
   djR('lineup size','lineup',.85,1.15,.01,pct);
   const bb=el('div',{className:'btns'});
