@@ -1,1 +1,89 @@
-{"looks":[{"id":"fmwl9g7ee7brg","hidden":true,"at":"2026-11-18T10:15:21.198Z"},{"id":"fmwl9ltf8d3zw","hidden":true,"at":"2026-11-18T10:00:05.912Z"}],"palettes":[]}
+{
+ "looks": [
+  {
+   "id": "fmwl9g7ee7brg",
+   "hidden": true,
+   "at": "2026-11-18T10:15:21.198Z"
+  },
+  {
+   "id": "fmwl9ltf8d3zw",
+   "hidden": true,
+   "at": "2026-11-18T10:00:05.912Z"
+  },
+  {
+   "at": "2026-11-18T12:05:41.616Z",
+   "id": "fmwlxf3x2ivkn",
+   "name": "look 5",
+   "look": {
+    "art": {
+     "duotone": false,
+     "kind": "blobs",
+     "mask": "pill",
+     "opacity": 0.87,
+     "overlay": "none",
+     "photoFx": "none",
+     "px": 0,
+     "py": 0,
+     "scale": 1.12,
+     "stamp": "none",
+     "stampFrame": "auto",
+     "stampInk": "random",
+     "stampSeed": 211461301,
+     "stampStyle": "auto"
+    },
+    "colour": {
+     "accent": "#9f57c8",
+     "accent2": "#c18958",
+     "auto": true,
+     "bg": "#060505",
+     "ink": "#6d4f4f"
+    },
+    "fx": {
+     "bloom": 0.34,
+     "blur": 0.7,
+     "dither": 0,
+     "grain": 0.21,
+     "master": 1,
+     "rgb": 0.25,
+     "slit": 0.35,
+     "sort": 0.31,
+     "target": "name",
+     "wave": 0,
+     "xerox": 0
+    },
+    "layout": {
+     "extrasStyle": "text",
+     "frame": "none",
+     "iScale": 1,
+     "kind": "inset",
+     "lScale": 1,
+     "lineupColor": "accent",
+     "tilt": 0,
+     "wScale": 1
+    },
+    "seeds": {
+     "art": 3320590193,
+     "colour": 981218484,
+     "fx": 3296781671,
+     "layout": 3243993441,
+     "type": 3762336210
+    },
+    "type": {
+     "info": "b:Space Mono:400",
+     "lineup": "g:Unbounded",
+     "pool": "all",
+     "stretch": 2.04,
+     "tracking": 0.1,
+     "wStyle": "outline",
+     "wordmark": "g:Rubik Burned"
+    },
+    "vibe": {
+     "chaos": 0.56,
+     "harsh": 0.3,
+     "night": 0.93
+    }
+   }
+  }
+ ],
+ "palettes": []
+}
