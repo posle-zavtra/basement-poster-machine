@@ -241,13 +241,13 @@ const DEFAULT={
   vibe:{night:.85,harsh:.6,chaos:.8},
   locks:{layout:false,type:false,colour:false,art:false,fx:false},
   layout:{kind:'classic',lineupColor:'ink',wScale:1,lScale:1,iScale:1,tilt:0,frame:'none',extrasStyle:'text'},
-  type:{wordmark:'g:UnifrakturMaguntia',wStyle:'fill',stretch:1,lineup:'g:Instrument Serif',info:'b:Space Mono:400',tracking:.12,pool:'all'},
+  type:{wordmark:'g:UnifrakturMaguntia',wStyle:'fill',stretch:1,lineup:'g:Instrument Serif',info:'b:Space Mono:400',tracking:.12,pool:'all',op:{name:1,lineup:1,info:1,date:1}},
   colour:{bg:'#140b16',ink:'#e6d2ff',accent:'#c06bff',accent2:'#ff4f9a',auto:true},
-  art:{kind:'rings',mask:'pill',opacity:1,scale:1,px:0,py:0,duotone:true,overlay:'none',photoFx:'none',stamp:'none',stampFrame:'auto',stampStyle:'auto',stampInk:'red',stampSeed:1},
+  art:{kind:'rings',mask:'pill',opacity:1,scale:1,px:0,py:0,duotone:true,overlay:'none',photoFx:'none',stamp:'none',stampFrame:'auto',stampStyle:'auto',stampInk:'red',stampColor:'#d42a1e',stampPos:0,stampSize:1,stampSeed:1},
   fx:{master:1,wave:0,slit:0,sort:.35,rgb:.25,blur:0,bloom:.35,dither:0,xerox:0,grain:.35,target:'name'},
   export:{bleed:false},
   prefs:{learn:true,pool:[]},
-  dj:{v:2,id:null,base:null,seeds:null,cseed:null,stamp:null,photoFx:null,stampSeed:null,stampInk:null,colour:'orig',cvar:'',pc:null,vibe:null,frame:null,overlay:null,target:null,name:1,lineup:1,info:1,scale:1,px:0,py:0,fx:null}
+  dj:{v:2,id:null,base:null,seeds:null,cseed:null,stamp:null,stampColor:null,stampPos:null,stampSize:null,photoFx:null,stampSeed:null,stampInk:null,colour:'orig',cvar:'',pc:null,vibe:null,frame:null,overlay:null,target:null,name:1,lineup:1,info:1,scale:1,px:0,py:0,fx:null}
 };
 function deepMerge(base,over){if(!over||typeof over!=='object')return base;for(const k in base){if(over[k]===undefined)continue;if(base[k]&&typeof base[k]==='object'&&!Array.isArray(base[k]))base[k]=deepMerge(base[k],over[k]);else base[k]=over[k]}return base}
 let S=deepMerge(clone(DEFAULT),ls.get('bpm-state'));S.prefs.pool=[];
@@ -276,8 +276,12 @@ function regionStats(ctx,x0,y0,x1,y1){const T=ctx.getTransform(),xs=[],ys=[];for
 function legible(ctx,fill,x0,y0,x1,y1,th){if(!LEG||typeof fill!=='string')return{fill,halo:null};const st=regionStats(ctx,x0,y0,x1,y1);if(!st)return{fill,halo:null};
   let best=fill;if(Math.abs(lum(fill)-st.mean)<th){const P=LEG.P,c=[fill,P.ink,P.bg,P.accent,P.accent2,'#ffffff','#111111'];best=c.reduce((a,b)=>Math.abs(lum(b)-st.mean)>Math.abs(lum(a)-st.mean)?b:a)}
   const busy=st.std>.17||Math.abs(lum(best)-st.mean)<th;return{fill:best,halo:busy?(lum(best)>.5?'rgba(0,0,0,.5)':'rgba(255,255,255,.55)'):null}}
+let RS=null,RS_iS=0,TXTROLE=null;// the state being rendered, and a role hint for text that can't be told apart by font
+function txtRole(o){if(TXTROLE)return TXTROLE;if(!RS)return null;const fi=F_(RS.type.info),fl=F_(RS.type.lineup);if(fi!==fl)return o.f===fl?'lineup':o.f===fi?'info':null;return o.f===fl?(o.size>RS_iS*1.25?'lineup':'info'):null}
 function txt(ctx,text,x,y,o){
-  if(!text)return 0;font(ctx,o.f,o.size);ctx.textBaseline='alphabetic';ctx.textAlign='left';
+  if(!text)return 0;const op=RS&&RS.type.op?RS.type.op[txtRole(o)]:null;if(op!=null&&op<1){ctx.save();ctx.globalAlpha*=op;const r=txt0(ctx,text,x,y,o);ctx.restore();return r}return txt0(ctx,text,x,y,o)}
+function txt0(ctx,text,x,y,o){
+  font(ctx,o.f,o.size);ctx.textBaseline='alphabetic';ctx.textAlign='left';
   const tr=(o.tracking||0)*o.size;const chars=Array.from(text);
   const w=ctx.measureText(text).width+(tr?tr*(chars.length-1):0);
   let x0=o.align==='center'?x-w/2:o.align==='right'?x-w:x;
@@ -297,7 +301,13 @@ function wordmark(ctx,text,maxW,maxH,S,styleOverride){
   const wPer=m.width/100+padK,hPer=((asc+desc)/100+padK)*sy+echoK*sy;
   let size=maxW/wPer;if(size*hPer>maxH)size=maxH/hPer;size=Math.max(size,1);
   const w=size*wPer,h=size*hPer,tilt=(S.layout.tilt||0)*Math.PI/180;
-  return{w,h,size,draw(cx,top,o={}){
+  const op=S.type.op&&S.type.op.name!=null?S.type.op.name:1;
+  const res={w,h,size,draw(cx,top,o={}){if(op>=.995)return res.draw0(cx,top,o);
+    // fade the whole name as one piece: keep what's underneath, draw the name, then lay the old pixels back on top at (1 - opacity)
+    const pad=size*.35,T=ctx.getTransform(),pts=[[cx-w/2-pad,top-pad],[cx+w/2+pad,top-pad],[cx-w/2-pad,top+h+pad],[cx+w/2+pad,top+h+pad]].map(([x,y])=>[T.a*x+T.c*y+T.e,T.b*x+T.d*y+T.f]);
+    const W=ctx.canvas.width,H=ctx.canvas.height,x0=clamp(Math.floor(Math.min(...pts.map(p=>p[0]))),0,W),y0=clamp(Math.floor(Math.min(...pts.map(p=>p[1]))),0,H),x1=clamp(Math.ceil(Math.max(...pts.map(p=>p[0]))),0,W),y1=clamp(Math.ceil(Math.max(...pts.map(p=>p[1]))),0,H);
+    if(x1-x0<2||y1-y0<2)return res.draw0(cx,top,o);const keep=document.createElement('canvas');keep.width=x1-x0;keep.height=y1-y0;keep.getContext('2d').drawImage(ctx.canvas,x0,y0,x1-x0,y1-y0,0,0,x1-x0,y1-y0);
+    res.draw0(cx,top,o);ctx.save();ctx.setTransform(1,0,0,1,0,0);ctx.globalAlpha=1-op;ctx.globalCompositeOperation='source-over';ctx.drawImage(keep,x0,y0);ctx.restore()},draw0(cx,top,o={}){
     const style=o.style||st;let col=o.color||P.accent;ctx.save();ctx.translate(cx,top+h/2);if(tilt)ctx.rotate(tilt);ctx.scale(1,sy);
     font(ctx,f,size);ctx.textBaseline='alphabetic';ctx.textAlign='left';
     const a=asc/100*size,dd=desc/100*size,uh=h/sy,y0=-uh/2+padK*size/2+a,x0=-m.width/100*size/2,echoH=echoK*size;
@@ -320,13 +330,13 @@ function wordmark(ctx,text,maxW,maxH,S,styleOverride){
       default:fillT(col);
     }
     ctx.restore();
-  }};
+  }};return res;
 }
 function bigDate(ctx,W,s,S,D,K){
   if(!D.big)return null;const f=F_(S.type.lineup),col=S.colour.accent;
-  if(D.big.style==='dots'){const size=W*.085*K.big,t=`${D.big.dd}.${D.big.mm}`;return{h:size*.8,draw:()=>txt(ctx,t,s.R,s.B,{f,size,fill:col,align:'right'})}}
+  if(D.big.style==='dots'){const size=W*.085*K.big,t=`${D.big.dd}.${D.big.mm}`;return{h:size*.8,draw:()=>{TXTROLE='date';txt(ctx,t,s.R,s.B,{f,size,fill:col,align:'right'});TXTROLE=null}}}
   const n=W*.13*K.big,ms=n*.3,mw=tw(ctx,D.big.month,f,ms);
-  return{h:n*.75+ms,draw:()=>{txt(ctx,D.big.month,s.R,s.B,{f,size:ms,fill:col,align:'right'});txt(ctx,D.big.day,s.R-mw*.6,s.B-ms*1.05,{f,size:n,fill:col,align:'right'})}};
+  return{h:n*.75+ms,draw:()=>{TXTROLE='date';txt(ctx,D.big.month,s.R,s.B,{f,size:ms,fill:col,align:'right'});txt(ctx,D.big.day,s.R-mw*.6,s.B-ms*1.05,{f,size:n,fill:col,align:'right'});TXTROLE=null}};
 }
 function lines(ctx,arr,x,y,lh,o){arr.forEach((t,i)=>txt(ctx,t,x,y+i*lh,o))}
 function vtxt(ctx,text,x,y,o,dir){ctx.save();ctx.translate(x,y);ctx.rotate(dir==='down'?Math.PI/2:-Math.PI/2);const w=txt(ctx,text,0,0,o);ctx.restore();return w}
@@ -745,7 +755,7 @@ function drawStamp(ctx,W,H,S,u){const sel=S.art.stamp;if(!sel||sel==='none')retu
   const R=rng((S.art.stampSeed||1)^S.seeds.art,'stamp'),kind=sel==='random'?pick(R,STAIR_KINDS):sel;if(!STAIRS[kind])return;
   const P=S.colour,shSel=S.art.stampFrame||'auto',shape=['oval','rounded','square','circle','none'].includes(shSel)?shSel:pick(R,['oval','oval','rounded','square','circle','none','none']);
   const stSel=S.art.stampStyle||'auto',style=stSel==='solid'||stSel==='outline'?stSel:(R()<.6?'solid':'outline');
-  const base=Math.round(Math.min(W,H)*(shape==='none'?.15+R()*.08:.11+R()*.06)),tall=shape==='oval'||shape==='rounded',sw=base,sh=tall?Math.round(base*1.55):base;
+  const base=Math.round(Math.min(W,H)*(shape==='none'?.15+R()*.08:.11+R()*.06)*(S.art.stampSize||1)),tall=shape==='oval'||shape==='rounded',sw=base,sh=tall?Math.round(base*1.55):base;
   const c=document.createElement('canvas');c.width=sw;c.height=sh;const g=c.getContext('2d',{willReadFrequently:true});g.lineCap='round';g.lineJoin='round';g.fillStyle=g.strokeStyle='#000';
   const inset=shape==='none'?.04:shape==='oval'||shape==='circle'?.2:.14,lw=1;g._m={x:sw*inset,y:sh*inset*(shape==='none'?1:.8),w:sw*(1-2*inset),h:sh*(1-(shape==='none'?2:1.6)*inset),lw:Math.min(sw,sh)*(shape==='none'?.075:.1)};
   const glyph=()=>{STAIRS[kind](g,R,lw)};
@@ -760,17 +770,19 @@ function drawStamp(ctx,W,H,S,u){const sel=S.art.stamp;if(!sel||sel==='none')retu
   g.putImageData(id,0,0);g.globalCompositeOperation='source-in';
   const INK={red:'#d42a1e',black:'#141414',white:'#f6f3ec',indigo:'#26307a',gold:'#b8892e'},far=(a,b)=>Math.abs(lum(a)-lum(b)),palC=[P.accent,P.ink,P.accent2].reduce((a,b)=>far(b,P.bg)>far(a,P.bg)+.12?b:a);
   let inkSel=S.art.stampInk||'red';if(inkSel==='random'){const ok=Object.keys(INK).filter(k=>far(INK[k],P.bg)>.25);inkSel=ok.length?pick(R,ok.concat(ok.includes('red')?['red','red']:[])):'palette'}
-  const col=inkSel==='palette'?palC:far(INK[inkSel]||INK.red,P.bg)<.08?palC:(INK[inkSel]||INK.red);
+  const col=inkSel==='custom'?(S.art.stampColor||INK.red):inkSel==='palette'?palC:far(INK[inkSel]||INK.red,P.bg)<.08?palC:(INK[inkSel]||INK.red);
   g.fillStyle=col;g.fillRect(0,0,sw,sh);
   // drop it where the poster is quietest (it lands after the text, so it looks for empty space), a little crooked
   const mx=sw*.6,my=sh*.6,cand=[];for(const fx of[.1,.3,.5,.7,.9])for(const fy of[.08,.25,.5,.75,.92])cand.push([clamp(fx*W,mx+W*.03,W-mx-W*.03),clamp(fy*H,my+H*.03,H-my-H*.03)]);
   const t=document.createElement('canvas');t.width=t.height=24;const tc=t.getContext('2d',{willReadFrequently:true});
   const busy=([x,y])=>{tc.clearRect(0,0,24,24);tc.drawImage(ctx.canvas,x-mx*1.2,y-my*1.2,mx*2.4,my*2.4,0,0,24,24);const d=tc.getImageData(0,0,24,24).data;let a=0,b=0,e=0;for(let i=0;i<d.length;i+=4){const l=(.2126*d[i]+.7152*d[i+1]+.0722*d[i+2])/255;a+=l;b+=l*l;if(i%96)e+=Math.abs(l-(.2126*d[i-4]+.7152*d[i-3]+.0722*d[i-2])/255)}a/=576;return b/576-a*a+e/576*.5};
-  const best=cand.map(p=>[p,busy(p)+R()*.003]).sort((p,q)=>p[1]-q[1])[0][0];
-  ctx.save();ctx.translate(best[0],best[1]);ctx.rotate((R()-.5)*.16);ctx.globalAlpha=.95;ctx.drawImage(c,-sw/2,-sh/2);ctx.restore()}
+  const pos=S.art.stampPos||0;let best,ang=(R()-.5)*.16;
+  if(pos>0){const Rp=rng(Math.floor(pos*1000)+1,'place');best=[mx+W*.03+Rp()*(W-2*mx-W*.06),my+H*.03+Rp()*(H-2*my-H*.06)];ang=(Rp()-.5)*.9}// the placement slider: each step is a new spot and angle
+  else best=cand.map(p=>[p,busy(p)+R()*.003]).sort((p,q)=>p[1]-q[1])[0][0];// 0 = auto, the quietest spot
+  ctx.save();ctx.translate(best[0],best[1]);ctx.rotate(ang);ctx.globalAlpha=.95;ctx.drawImage(c,-sw/2,-sh/2);ctx.restore()}
 
 function renderPoster(canvas,fk,S){
-  LEG=null;const F=FORMATS[fk],W=canvas.width,H=canvas.height,u=W/1000,ctx=canvas.getContext('2d',{willReadFrequently:true});
+  LEG=null;const F=FORMATS[fk],W=canvas.width,H=canvas.height,u=W/1000,ctx=canvas.getContext('2d',{willReadFrequently:true});RS=S;RS_iS=W*.0165*(S.layout.iScale||1)*F.k.info;TXTROLE=null;
   const s={L:F.safe.l*W,R:W-F.safe.r*W,T:F.safe.t*H,B:H-F.safe.b*H};
   ctx.save();ctx.setTransform(1,0,0,1,0,0);ctx.globalAlpha=1;ctx.globalCompositeOperation='source-over';ctx.fillStyle=S.colour.bg;ctx.fillRect(0,0,W,H);
   const LAY=LAYOUTS[S.layout.kind]||LAYOUTS.classic;let plan=LAY(ctx,W,H,s,S,F.k);
@@ -783,7 +795,7 @@ function renderPoster(canvas,fk,S){
     const m=meanLum(ctx,box),P=S.colour,cands=[P.ink,P.bg,P.accent,P.accent2,'#ffffff','#111111'];
     const best=(c,th)=>Math.abs(lum(c)-m)>=th?c:cands.reduce((a,b)=>Math.abs(lum(b)-m)>Math.abs(lum(a)-m)?b:a);
     const ink=best(P.ink,.38),accent=best(P.accent,.22);
-    if(ink!==P.ink||accent!==P.accent){S={...S,colour:{...P,ink,accent}};const keep=plan.postArt;plan=LAY(ctx,W,H,s,S,F.k)}}
+    if(ink!==P.ink||accent!==P.accent){S={...S,colour:{...P,ink,accent}};RS=S;const keep=plan.postArt;plan=LAY(ctx,W,H,s,S,F.k)}}
   if(S.art.overlay&&OVERLAY[S.art.overlay])OVERLAY[S.art.overlay](ctx,W,H,S,u,rng(S.seeds.art,'ov'),artC,box);
   const tg=S.fx.target;
   applyFx(canvas,ctx,S,u,'distort');
@@ -852,13 +864,13 @@ function genType(R,V){
 }
 function genLayout(R,V){const ph=artImg?1:0;return{kind:weighted(R,tW('layout',poolOnly({classic:1.1-V.chaos*.4,wall:.6,edge:.55,echo:.35+V.chaos*.4,scatter:V.chaos*1.1,rails:.7+V.chaos*.3,inset:.6+ph*.6,split:.45+ph*.6,paragraph:.7,boxed:.6,collage:.4+V.chaos*.4+ph*.8,stub:.55}))),frame:weighted(R,tW('frame',{none:1.6,border:.35,marks:.45})),extrasStyle:S.layout.extrasStyle,lineupColor:R()<.6?'ink':'accent',wScale:1,lScale:1,iScale:1,tilt:V.chaos>.45&&R()<V.chaos*.6?Math.round((R()-.5)*16*V.chaos):0}}
 function genArt(R,V){const kinds={none:.25+(1-V.chaos)*.3,blobs:1,rings:.8,houses:.7,flow:.5+V.chaos*.5,type:.5,checker:.35,brush:.6};if(artImg)kinds.upload=3;
-  return{kind:weighted(R,tW('art',kinds)),mask:weighted(R,tW('mask',{full:.9+V.chaos,pill:.7,circle:.5,arch:.5,blob:.3+V.chaos*.5})),opacity:+(.65+R()*.35).toFixed(2),scale:+(.8+R()*.6).toFixed(2),duotone:S.art.duotone,overlay:weighted(R,tW('overlay',{none:1.6,scribble:.2+V.chaos*.6,stars:.25,trace:artImg?.7:.15})),px:0,py:0,photoFx:weighted(R,tW('photofx',{none:2.2,lowpoly:.6,flash:.6,redflash:.5})),stamp:weighted(R,tW('stamp',{none:1.6,random:1})),stampFrame:'auto',stampStyle:'auto',stampInk:'random',stampSeed:Math.floor(R()*1e9)}}
+  return{kind:weighted(R,tW('art',kinds)),mask:weighted(R,tW('mask',{full:.9+V.chaos,pill:.7,circle:.5,arch:.5,blob:.3+V.chaos*.5})),opacity:+(.65+R()*.35).toFixed(2),scale:+(.8+R()*.6).toFixed(2),duotone:S.art.duotone,overlay:weighted(R,tW('overlay',{none:1.6,scribble:.2+V.chaos*.6,stars:.25,trace:artImg?.7:.15})),px:0,py:0,photoFx:weighted(R,tW('photofx',{none:2.2,lowpoly:.6,flash:.6,redflash:.5})),stamp:weighted(R,tW('stamp',{none:1.6,random:1})),stampFrame:'auto',stampStyle:'auto',stampInk:'random',stampColor:S.art.stampColor||'#d42a1e',stampPos:0,stampSize:1,stampSeed:Math.floor(R()*1e9)}}
 function genFx(R,V){const c=V.chaos,h=V.harsh,on=(k,p,lo,hi)=>{p=clamp(p*tm('fx:'+k+':on')/tm('fx:'+k+':off'),.02,.95);return R()<p?+(lo+R()*(hi-lo)).toFixed(2):0};
   return{master:1,wave:on('wave',.12+c*.35,.1,.2+.5*c),slit:on('slit',.08+c*.3,.15,.6),sort:on('sort',.12+c*.45,.15,.4+.5*c),rgb:on('rgb',.2+c*.4,.1,.6),bloom:on('bloom',.3+V.night*.3,.15,.6),dither:on('dither',.06+h*.22,.15,.7),blur:on('blur',.06+(1-h)*.14,.2,.8),xerox:on('xerox',.08+h*.2,.2,.8),grain:+(.12+R()*.4*(.5+h)).toFixed(2),target:weighted(R,tW('target',{art:.45,name:.4+V.chaos*.2,all:.1+V.chaos*.15}))}}
 const ALL_LAYOUTS=[['classic','classic'],['echo','echo'],['wall','wall'],['edge','edge'],['scatter','scatter'],['rails','rails'],['inset','inset'],['split','split'],['paragraph','run-in'],['boxed','boxed'],['collage','collage'],['stub','stub']];
 function poolOnly(o){const pool=S.prefs.pool;if(!pool||!pool.length)return o;const r={};for(const k in o)if(pool.includes(k))r[k]=o[k];return Object.keys(r).length?r:o}
 const GEN={layout:genLayout,type:genType,colour:genColour,art:genArt,fx:genFx};
-function regen(k){const keepPool=S.type.pool,keepDuo=S.art.duotone,keepAuto=S.colour.auto;if(S.seeds[k]==null)S.seeds[k]=newSeed();S[k]=GEN[k](rng(S.seeds[k],k),S.vibe);if(k==='type')S.type.pool=keepPool;if(k==='art')S.art.duotone=keepDuo;if(k==='colour')S.colour.auto=keepAuto}
+function regen(k){const keepOp=clone(S.type.op||DEFAULT.type.op),keepPool=S.type.pool,keepDuo=S.art.duotone,keepAuto=S.colour.auto;if(S.seeds[k]==null)S.seeds[k]=newSeed();S[k]=GEN[k](rng(S.seeds[k],k),S.vibe);if(k==='type'){S.type.pool=keepPool;S.type.op=keepOp}if(k==='art')S.art.duotone=keepDuo;if(k==='colour')S.colour.auto=keepAuto}
 function vibeChanged(){const keys=Object.keys(GEN).filter(k=>!S.locks[k]);if(!keys.length){status('everything is locked, unlock a section to let the vibe change it');return}for(const k of keys)regen(k);sync();commit()}
 function shuffle(scope='all'){
   const keys=scope==='all'?Object.keys(GEN).filter(k=>!S.locks[k]):[scope];if(!keys.length){status('everything is locked');return}
@@ -955,6 +967,7 @@ function buildUI(){
   cSelect(b,'lineup font','type.lineup',fontOptions);
   cSelect(b,'info font','type.info',fontOptions);
   cRange(b,'info spacing','type.tracking',0,.4,.01);
+  const pc=v=>Math.round(v*100)+'%';cRange(b,'name opacity','type.op.name',.1,1,.01,pc);cRange(b,'lineup opacity','type.op.lineup',.1,1,.01,pc);cRange(b,'info opacity','type.op.info',.1,1,.01,pc);cRange(b,'date opacity','type.op.date',.1,1,.01,pc);
   cSeg(b,'shuffle uses','type.pool',[['all','all fonts'],['yours','my fonts'],['builtin','built-in']]);
   const fin=el('input',{type:'file',multiple:true,accept:'.otf,.ttf,.woff,.woff2,.zip'});fin.style.display='none';fin.onchange=()=>{handleFontFiles([...fin.files]);fin.value=''};
   const drop=el('div',{id:'drop',innerHTML:'drop your fonts here<br><small>.otf .ttf .woff .woff2 or a .zip · they stay in this browser only</small>'});drop.onclick=()=>fin.click();
@@ -980,7 +993,10 @@ function buildUI(){
   cSeg(b,'stairs seal','art.stamp',[['none','none'],['random','random'],['steps','steps'],['outline','hollow'],['blocks','blocks'],['figure','walker'],['door','door'],['spiral','spiral'],['ladder','ladder'],['rope','rope ladder'],['twin','two flights'],['arrow','arrow']]);
   cSeg(b,'seal shape','art.stampFrame',[['auto','auto'],['none','no frame'],['oval','oval'],['rounded','rounded'],['square','square'],['circle','circle']]);
   cSeg(b,'seal style','art.stampStyle',[['auto','auto'],['solid','solid'],['outline','outline']]);
-  cSeg(b,'seal ink','art.stampInk',[['random','random'],['red','red'],['black','black'],['white','white'],['indigo','indigo'],['gold','gold'],['palette','palette']]);
+  cSeg(b,'seal ink','art.stampInk',[['random','random'],['red','red'],['black','black'],['white','white'],['indigo','indigo'],['gold','gold'],['palette','palette'],['custom','custom']]);
+  {const r=cColor(b,'seal colour','art.stampColor');r.querySelector('input').addEventListener('input',()=>{if(S.art.stampInk!=='custom'){S.art.stampInk='custom';sync();commit()}})}
+  cRange(b,'seal spot','art.stampPos',0,1,.001,v=>v<=0?'auto':Math.round(v*1000)+'');
+  cRange(b,'seal size','art.stampSize',.5,2.2,.01,v=>Math.round(v*100)+'%');
   {const r=el('div',{className:'btns'});r.append(btn('new seal ↻','new stairs, position and ink',()=>{S.art.stampSeed=newSeed();commit(true)}));b.append(r)}
   cRange(b,'opacity','art.opacity',0,1,.01);cRange(b,'scale','art.scale',.4,2.5,.01);
   cSeg(b,'photo look','art.photoFx',[['none','as is'],['lowpoly','low poly'],['flash','flash'],['redflash','red flash']]);
@@ -1159,7 +1175,7 @@ function djLookFrom(base,d){const L=clone(base),o={};
   const cv=d.cvar||({swap:'swap',invert:'invert',flip:'flip'}[d.colour]||'');
   if(cv==='swap')[c.accent,c.accent2]=[c.accent2,c.accent];else if(cv==='invert')[c.bg,c.ink]=[c.ink,c.bg];else if(cv==='flip')[c.bg,c.accent]=[c.accent,c.bg];
   o.colour=c;
-  const a=deepMerge(clone(DEFAULT.art),L.art);if(a.kind==='upload'){a.scale*=d.scale||1;a.px=d.px||0;a.py=d.py||0}if(d.overlay)a.overlay=d.overlay;if(d.photoFx)a.photoFx=d.photoFx;if(d.stamp==='off')a.stamp='none';else if(d.stamp==='on'&&(!a.stamp||a.stamp==='none'))a.stamp='random';if(d.stampSeed)a.stampSeed=d.stampSeed;if(d.stampInk)a.stampInk=d.stampInk;o.art=a;
+  const a=deepMerge(clone(DEFAULT.art),L.art);if(a.kind==='upload'){a.scale*=d.scale||1;a.px=d.px||0;a.py=d.py||0}if(d.overlay)a.overlay=d.overlay;if(d.photoFx)a.photoFx=d.photoFx;if(d.stamp==='off')a.stamp='none';else if(d.stamp==='on'&&(!a.stamp||a.stamp==='none'))a.stamp='random';if(d.stampSeed)a.stampSeed=d.stampSeed;if(d.stampInk)a.stampInk=d.stampInk;if(d.stampColor)a.stampColor=d.stampColor;if(d.stampPos!=null)a.stampPos=d.stampPos;if(d.stampSize!=null)a.stampSize=d.stampSize;o.art=a;
   const f=deepMerge(clone(DEFAULT.fx),L.fx);if(d.vibe)f.master=clamp(f.master*(.3+1.4*o.vibe.chaos)/(.3+1.4*bV.chaos),0,2);if(d.target)f.target=d.target;
   if(d.fx)for(const k in d.fx)f[k]=d.fx[k]/Math.max(.01,f.master);o.fx=f;
   o.seeds=Object.assign(clone(DEFAULT.seeds),L.seeds||{},d.seeds||{});return o}
@@ -1245,7 +1261,10 @@ function buildDjUI(){const pct=v=>Math.round(v*100)+'%';
   {const r=el('div',{className:'btns'});r.append(btn('new pattern','same art, new randomness',()=>djSet('seeds',Object.assign({},S.dj.seeds||{},{art:newSeed()}),true)));b.append(r);genRows.push(r)}
   segRow(b,'marks on top',[['none','none'],['scribble','scribble'],['stars','stars'],['trace','trace lines']],()=>{const L=djL();return L?L.art.overlay:''},v=>djSet('overlay',v,true));
   segRow(b,'stairs seal',[['off','off'],['on','on']],()=>{const L=djL();return L&&L.art.stamp&&L.art.stamp!=='none'?'on':'off'},v=>djSet('stamp',v,true));
-  {const ir=segRow(b,'seal ink',[['red','red'],['black','black'],['white','white'],['indigo','indigo'],['gold','gold'],['palette','palette']],()=>{const L=djL();return L?L.art.stampInk:''},v=>djSet('stampInk',v,true));const r=el('div',{className:'btns'});r.append(btn('new seal ↻','the stairs seal in a new spot, with new ink',()=>djSet('stampSeed',newSeed(),true)));b.append(r);syncers.push(()=>{const L=djL(),on=L&&L.art.stamp&&L.art.stamp!=='none';r.style.display=ir.style.display=on?'':'none'})}
+  {const ir=segRow(b,'seal ink',[['red','red'],['black','black'],['white','white'],['indigo','indigo'],['gold','gold'],['palette','palette'],['custom','custom']],()=>{const L=djL();return L?L.art.stampInk:''},v=>djSet('stampInk',v,true));
+   const ce=el('input',{type:'color'});ce.addEventListener('input',()=>{S.dj.stampColor=ce.value;S.dj.stampInk='custom';applyDj();sync();commit()});syncers.push(()=>{const L=djL();if(L&&document.activeElement!==ce)ce.value=L.art.stampColor||'#d42a1e'});const cr=row(b,'seal colour',ce);
+   const pr=djRange(b,'seal spot',()=>{const L=djL();return L?L.art.stampPos||0:0},v=>djSet('stampPos',v),()=>0,()=>1,v=>v<=0?'auto':Math.round(v*1000)+'');pr.querySelector('input').step=.001;
+   const sr=djRange(b,'seal size',()=>{const L=djL();return L?L.art.stampSize||1:1},v=>djSet('stampSize',v),()=>.5,()=>2.2,v=>Math.round(v*100)+'%');const r=el('div',{className:'btns'});r.append(btn('new seal ↻','the stairs seal in a new spot, with new ink',()=>djSet('stampSeed',newSeed(),true)));b.append(r);syncers.push(()=>{const L=djL(),on=L&&L.art.stamp&&L.art.stamp!=='none';r.style.display=ir.style.display=cr.style.display=pr.style.display=sr.style.display=on?'':'none'})}
   syncers.push(()=>{const L=djL(),ph=!!L&&L.art.kind==='upload';for(const r of photoRows)r.style.display=ph?'':'none';for(const r of genRows)r.style.display=ph?'none':''});
   // effects: start at the look's own values, move within a limited range
   b=djSec('Effects',()=>{const L=djL();return L?DJFX.filter(([,ks])=>fxEff(L.fx,ks[0])>.01).length+' on':''});
