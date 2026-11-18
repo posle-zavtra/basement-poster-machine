@@ -247,7 +247,7 @@ const DEFAULT={
   fx:{master:1,wave:0,slit:0,sort:.35,rgb:.25,blur:0,bloom:.35,dither:0,xerox:0,grain:.35,target:'name'},
   export:{bleed:false},
   prefs:{learn:true,pool:[]},
-  dj:{v:2,id:null,base:null,seeds:null,cseed:null,photoFx:null,stampSeed:null,stampInk:null,colour:'orig',cvar:'',pc:null,vibe:null,frame:null,overlay:null,target:null,name:1,lineup:1,info:1,scale:1,px:0,py:0,fx:null}
+  dj:{v:2,id:null,base:null,seeds:null,cseed:null,stamp:null,photoFx:null,stampSeed:null,stampInk:null,colour:'orig',cvar:'',pc:null,vibe:null,frame:null,overlay:null,target:null,name:1,lineup:1,info:1,scale:1,px:0,py:0,fx:null}
 };
 function deepMerge(base,over){if(!over||typeof over!=='object')return base;for(const k in base){if(over[k]===undefined)continue;if(base[k]&&typeof base[k]==='object'&&!Array.isArray(base[k]))base[k]=deepMerge(base[k],over[k]);else base[k]=over[k]}return base}
 let S=deepMerge(clone(DEFAULT),ls.get('bpm-state'));S.prefs.pool=[];
@@ -1159,7 +1159,7 @@ function djLookFrom(base,d){const L=clone(base),o={};
   const cv=d.cvar||({swap:'swap',invert:'invert',flip:'flip'}[d.colour]||'');
   if(cv==='swap')[c.accent,c.accent2]=[c.accent2,c.accent];else if(cv==='invert')[c.bg,c.ink]=[c.ink,c.bg];else if(cv==='flip')[c.bg,c.accent]=[c.accent,c.bg];
   o.colour=c;
-  const a=deepMerge(clone(DEFAULT.art),L.art);if(a.kind==='upload'){a.scale*=d.scale||1;a.px=d.px||0;a.py=d.py||0}if(d.overlay)a.overlay=d.overlay;if(d.photoFx)a.photoFx=d.photoFx;if(d.stampSeed)a.stampSeed=d.stampSeed;if(d.stampInk)a.stampInk=d.stampInk;o.art=a;
+  const a=deepMerge(clone(DEFAULT.art),L.art);if(a.kind==='upload'){a.scale*=d.scale||1;a.px=d.px||0;a.py=d.py||0}if(d.overlay)a.overlay=d.overlay;if(d.photoFx)a.photoFx=d.photoFx;if(d.stamp==='off')a.stamp='none';else if(d.stamp==='on'&&(!a.stamp||a.stamp==='none'))a.stamp='random';if(d.stampSeed)a.stampSeed=d.stampSeed;if(d.stampInk)a.stampInk=d.stampInk;o.art=a;
   const f=deepMerge(clone(DEFAULT.fx),L.fx);if(d.vibe)f.master=clamp(f.master*(.3+1.4*o.vibe.chaos)/(.3+1.4*bV.chaos),0,2);if(d.target)f.target=d.target;
   if(d.fx)for(const k in d.fx)f[k]=d.fx[k]/Math.max(.01,f.master);o.fx=f;
   o.seeds=Object.assign(clone(DEFAULT.seeds),L.seeds||{},d.seeds||{});return o}
@@ -1244,6 +1244,7 @@ function buildDjUI(){const pct=v=>Math.round(v*100)+'%';
   photoRows.push(djRange(b,'photo size',()=>S.dj.scale||1,v=>djSet('scale',v),()=>.7,()=>1.6,pct),djRange(b,'photo ↔',()=>S.dj.px||0,v=>djSet('px',v),()=>-1,()=>1,v=>v.toFixed(2)),djRange(b,'photo ↕',()=>S.dj.py||0,v=>djSet('py',v),()=>-1,()=>1,v=>v.toFixed(2)));
   {const r=el('div',{className:'btns'});r.append(btn('new pattern','same art, new randomness',()=>djSet('seeds',Object.assign({},S.dj.seeds||{},{art:newSeed()}),true)));b.append(r);genRows.push(r)}
   segRow(b,'marks on top',[['none','none'],['scribble','scribble'],['stars','stars'],['trace','trace lines']],()=>{const L=djL();return L?L.art.overlay:''},v=>djSet('overlay',v,true));
+  segRow(b,'stairs seal',[['off','off'],['on','on']],()=>{const L=djL();return L&&L.art.stamp&&L.art.stamp!=='none'?'on':'off'},v=>djSet('stamp',v,true));
   {const ir=segRow(b,'seal ink',[['red','red'],['black','black'],['white','white'],['indigo','indigo'],['gold','gold'],['palette','palette']],()=>{const L=djL();return L?L.art.stampInk:''},v=>djSet('stampInk',v,true));const r=el('div',{className:'btns'});r.append(btn('new seal ↻','the stairs seal in a new spot, with new ink',()=>djSet('stampSeed',newSeed(),true)));b.append(r);syncers.push(()=>{const L=djL(),on=L&&L.art.stamp&&L.art.stamp!=='none';r.style.display=ir.style.display=on?'':'none'})}
   syncers.push(()=>{const L=djL(),ph=!!L&&L.art.kind==='upload';for(const r of photoRows)r.style.display=ph?'':'none';for(const r of genRows)r.style.display=ph?'none':''});
   // effects: start at the look's own values, move within a limited range
