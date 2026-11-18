@@ -111,7 +111,11 @@ body:not(.dj) .dj-only{display:none!important}
 .djrow{display:flex;gap:6px;padding:2px 8px 4px;align-items:center}.djrow .btn:first-child{flex:1;text-align:left}
 .djacc{display:none;border-top:1px solid var(--line);border-bottom:1px solid var(--line);margin:4px 0;max-height:420px;overflow:auto}.djacc.open{display:block}
 .djall{grid-template-columns:repeat(4,1fr)}
-.lockv{opacity:.55}.row.locked{opacity:.55}.row.locked input{cursor:not-allowed}
+.lockv{opacity:.55}
+.palgrid{display:grid;grid-template-columns:repeat(6,1fr);gap:6px;padding:4px 8px 6px}
+.pal{position:relative;display:grid;grid-template-columns:1fr 1fr;height:34px;border:1px solid var(--b);cursor:pointer}.pal i{display:block}.pal:hover{outline:2px solid var(--b)}.pal.on{outline:3px solid var(--b);outline-offset:1px}
+.pal.newpal::after{content:'↻';position:absolute;inset:0;display:grid;place-items:center;font-weight:700;color:var(--b);text-shadow:0 0 3px #fff}
+.desx{position:absolute;top:-7px;right:-7px;font:inherit;font-size:9px;line-height:1;padding:1px 3px;color:#e8512a;border:1px dashed #e8512a;background:#fff8f5;cursor:pointer}.row.locked{opacity:.55}.row.locked input{cursor:not-allowed}
 .btn.icon{font-size:15px;padding:1px 9px}
 .btn.desonly{color:#e8512a;border:1px dashed #e8512a;background:#fff8f5}.btn.desonly:hover{background:#ffeee6}
 .djrow{display:flex;gap:6px;padding:4px 8px}.djrow .btn{flex:1;text-align:left}.djrow .btn.desonly{flex:none}
@@ -238,11 +242,11 @@ const DEFAULT={
   layout:{kind:'classic',lineupColor:'ink',wScale:1,lScale:1,iScale:1,tilt:0,frame:'none',extrasStyle:'text'},
   type:{wordmark:'g:UnifrakturMaguntia',wStyle:'fill',stretch:1,lineup:'g:Instrument Serif',info:'b:Space Mono:400',tracking:.12,pool:'all'},
   colour:{bg:'#140b16',ink:'#e6d2ff',accent:'#c06bff',accent2:'#ff4f9a',auto:true},
-  art:{kind:'rings',mask:'pill',opacity:1,scale:1,px:0,py:0,duotone:true,overlay:'none'},
+  art:{kind:'rings',mask:'pill',opacity:1,scale:1,px:0,py:0,duotone:true,overlay:'none',stamp:'none',stampFrame:'auto',stampSeed:1},
   fx:{master:1,wave:0,slit:0,sort:.35,rgb:.25,blur:0,bloom:.35,dither:0,xerox:0,grain:.35,target:'name'},
   export:{bleed:false},
   prefs:{learn:true,pool:[]},
-  dj:{v:2,id:null,base:null,seeds:null,cseed:null,colour:'orig',name:1,lineup:1,info:1,scale:1,px:0,py:0,fx:null}
+  dj:{v:2,id:null,base:null,seeds:null,cseed:null,stampSeed:null,colour:'orig',cvar:'',pc:null,vibe:null,frame:null,overlay:null,target:null,name:1,lineup:1,info:1,scale:1,px:0,py:0,fx:null}
 };
 function deepMerge(base,over){if(!over||typeof over!=='object')return base;for(const k in base){if(over[k]===undefined)continue;if(base[k]&&typeof base[k]==='object'&&!Array.isArray(base[k]))base[k]=deepMerge(base[k],over[k]);else base[k]=over[k]}return base}
 let S=deepMerge(clone(DEFAULT),ls.get('bpm-state'));S.prefs.pool=[];
@@ -657,6 +661,67 @@ function applyFx(canvas,ctx,S,u,group,cap){
 }
 
 /* ============ render ============ */
+/* ============ stairs stamp: the Basement sign, printed like an ink stamp ============ */
+// every drawer works in a unit square (0..1), black on transparent; the stamp colours and roughens it after
+const STAIRS={
+  down(g,R){// looking down the stairs into the basement through a doorway
+    const n=5+Math.floor(R()*4);g.lineJoin='miter';
+    g.fillRect(.14,.06,.72,.05);g.fillRect(.14,.06,.05,.88);g.fillRect(.81,.06,.05,.88);
+    for(let i=0;i<n;i++){const t=i/n,t2=(i+1)/n,e=x=>Math.pow(x,1.35),y0=.94-e(t)*.78,y1=.94-e(t2)*.78,w0=.62-t*.34,w1=.62-t2*.34;
+      g.beginPath();g.moveTo(.5-w0/2,y0);g.lineTo(.5+w0/2,y0);g.lineTo(.5+w1/2,y1+(y0-y1)*.38);g.lineTo(.5-w1/2,y1+(y0-y1)*.38);g.closePath();g.fill()}
+    g.fillRect(.5-.14,.11,.28,.94-Math.pow(1,1.35)*.78-.11+.02)},
+  steps(g,R){// side view, steps going down to the right
+    const n=4+Math.floor(R()*4),x0=.08,y0=.14,dx=.84/n,dy=.74/n;g.beginPath();g.moveTo(x0,y0);
+    for(let i=0;i<n;i++){g.lineTo(x0+dx*(i+1),y0+dy*i);g.lineTo(x0+dx*(i+1),y0+dy*(i+1))}g.lineTo(x0,y0+dy*n);g.closePath();g.fill();
+    if(R()<.6){g.lineWidth=.035;g.beginPath();g.moveTo(x0+.02,y0-.08);g.lineTo(x0+dx*n-.02,y0+dy*(n-1)-.08);g.stroke()}},
+  spiral(g,R){// spiral stair from above
+    const n=9+Math.floor(R()*5),tw=.25+R()*.35;g.lineWidth=.05;g.beginPath();g.arc(.5,.5,.44,0,6.283);g.stroke();
+    g.beginPath();g.arc(.5,.5,.08,0,6.283);g.fill();g.lineWidth=.035;
+    for(let i=0;i<n;i++){const a=i/n*6.283;g.beginPath();g.moveTo(.5+Math.cos(a)*.08,.5+Math.sin(a)*.08);g.quadraticCurveTo(.5+Math.cos(a+tw)*.28,.5+Math.sin(a+tw)*.28,.5+Math.cos(a+tw*1.6)*.44,.5+Math.sin(a+tw*1.6)*.44);g.stroke()}
+    g.lineWidth=.06;g.beginPath();g.arc(.5,.5,.44,R()*6.283,R()*6.283+2.2+R()*2);g.stroke()},
+  block(g,R){// a solid flight of steps in oblique view
+    const n=4+Math.floor(R()*3),x0=.1,y0=.3,dx=.56/n,dy=.56/n,ox=.24,oy=-.2;g.lineWidth=.04;
+    const pts=[[x0,y0+dy*n]];for(let i=0;i<n;i++){pts.push([x0+dx*i,y0+dy*(n-i)],[x0+dx*i,y0+dy*(n-i-1)]);}pts.push([x0+dx*n,y0],[x0+dx*n,y0+dy*n]);
+    g.beginPath();pts.forEach(([x,y],i)=>i?g.lineTo(x,y):g.moveTo(x,y));g.closePath();g.fill();
+    for(let i=0;i<n;i++){const x=x0+dx*i,y=y0+dy*(n-i-1);g.beginPath();g.moveTo(x,y);g.lineTo(x+ox,y+oy);g.lineTo(x+dx+ox,y+oy);g.lineTo(x+dx,y);g.stroke()}
+    g.beginPath();g.moveTo(x0+dx*n,y0);g.lineTo(x0+dx*n+ox,y0+oy);g.lineTo(x0+dx*n+ox,y0+dy*n+oy);g.lineTo(x0+dx*n,y0+dy*n);g.stroke()},
+  hatch(g,R){// a cellar hatch in the pavement, doors open
+    g.lineWidth=.045;g.beginPath();g.moveTo(.2,.45);g.lineTo(.8,.45);g.lineTo(.92,.92);g.lineTo(.08,.92);g.closePath();g.stroke();
+    const n=5+Math.floor(R()*3);for(let i=1;i<=n;i++){const t=i/(n+1),y=.45+t*.47,xl=.2-t*.12+.05,xr=.8+t*.12-.05;g.lineWidth=.035+t*.04;g.beginPath();g.moveTo(xl+(1-t)*.06,y);g.lineTo(xr-(1-t)*.06,y);g.stroke()}
+    g.beginPath();g.moveTo(.2,.45);g.lineTo(.08,.12);g.lineTo(.42,.08);g.lineTo(.5,.45);g.closePath();g.fill();
+    g.beginPath();g.moveTo(.8,.45);g.lineTo(.93,.14);g.lineTo(.6,.1);g.lineTo(.5,.45);g.closePath();g.lineWidth=.03;g.stroke()},
+  ladder(g,R){// a ladder down a hole
+    g.beginPath();g.ellipse(.5,.82,.42,.12,0,0,6.283);g.fill();
+    const n=6+Math.floor(R()*3);g.lineWidth=.045;g.beginPath();g.moveTo(.32,.04);g.lineTo(.36,.84);g.moveTo(.68,.04);g.lineTo(.64,.84);g.stroke();
+    g.lineWidth=.035;for(let i=0;i<n;i++){const y=.1+i*(.68/n);g.beginPath();g.moveTo(.33,y);g.lineTo(.67,y);g.stroke()}}
+};
+const STAIR_KINDS=Object.keys(STAIRS);
+function drawStamp(ctx,W,H,S,u){const kindSel=S.art.stamp;if(!kindSel||kindSel==='none')return;
+  const R=rng((S.art.stampSeed||1)^S.seeds.art,'stamp'),kind=kindSel==='random'?pick(R,STAIR_KINDS):kindSel;if(!STAIRS[kind])return;
+  const P=S.colour,frameSel=S.art.stampFrame||'auto',frame=frameSel==='auto'?pick(R,['circle','circle','square','none']):frameSel;
+  const sz=Math.round(Math.min(W,H)*(.27+R()*.1)),c=document.createElement('canvas');c.width=c.height=sz;const g=c.getContext('2d',{willReadFrequently:true});
+  g.fillStyle=g.strokeStyle='#000';g.lineCap='square';
+  // frame + words around it
+  const pad=frame==='none'?.06:.24;g.save();g.translate(sz*pad,sz*pad);g.scale(sz*(1-2*pad),sz*(1-2*pad));STAIRS[kind](g,R);g.restore();
+  const word=('BASEMENT ✦ '+(S.data.handle||'@basement.ldn').replace(/^@/,'').toUpperCase()+' ✦ ');
+  if(frame==='circle'){g.lineWidth=sz*.03;g.beginPath();g.arc(sz/2,sz/2,sz*.47,0,6.283);g.stroke();g.lineWidth=sz*.016;g.beginPath();g.arc(sz/2,sz/2,sz*.33,0,6.283);g.stroke();
+    const chars=[...word.repeat(word.length<18?2:1)];g.font=`700 ${Math.round(Math.min(sz*.085,2*Math.PI*sz*.4/chars.length*1.05))}px 'Space Mono'`;g.textAlign='center';g.textBaseline='middle';
+    chars.forEach((ch,i)=>{const a=i/chars.length*6.283-1.57;g.save();g.translate(sz/2+Math.cos(a)*sz*.4,sz/2+Math.sin(a)*sz*.4);g.rotate(a+1.57);g.fillText(ch,0,0);g.restore()})}
+  else if(frame==='square'){g.lineWidth=sz*.03;g.strokeRect(sz*.03,sz*.03,sz*.94,sz*.94);g.lineWidth=sz*.01;g.strokeRect(sz*.1,sz*.1,sz*.8,sz*.8);
+    g.font=`700 ${Math.round(sz*.07)}px 'Space Mono'`;g.textAlign='center';g.textBaseline='middle';g.fillText('BASEMENT',sz/2,sz*.165);g.fillText('↓ ↓ ↓',sz/2,sz*.86)}
+  // ink: blotchy coverage, speckles and a soft edge, like a rubber stamp pressed unevenly
+  const id=g.getImageData(0,0,sz,sz),d=id.data,N=makeNoise(R),k=8/sz,press=.25+R()*.25;let sd=(S.art.stampSeed||7)>>>0;
+  for(let y=0;y<sz;y++)for(let x=0;x<sz;x++){const i=(y*sz+x)*4;if(!d[i+3])continue;sd=Math.imul(sd,1664525)+1013904223>>>0;const sp=(sd>>>8)/16777216,bl=N(x*k,y*k),fine=N(x*k*6+50,y*k*6);
+    let a=d[i+3]/255*(bl<press?.35:1)*(fine<.25?.55:1);if(sp<.07)a=0;else if(sp<.14)a*=.5;d[i+3]=a*235}
+  g.putImageData(id,0,0);g.globalCompositeOperation='source-in';
+  const col=[P.accent,P.ink,P.accent2].reduce((a,b)=>Math.abs(lum(b)-lum(P.bg))>Math.abs(lum(a)-lum(P.bg))+.12?b:a);g.fillStyle=col;g.fillRect(0,0,sz,sz);
+  // drop it where the poster is quietest (it lands after the text, so it looks for empty space), a little crooked
+  const m=sz*.55,cand=[];for(const fx of[.12,.5,.88])for(const fy of[.1,.3,.5,.7,.9])cand.push([clamp(fx*W,m,W-m),clamp(fy*H,m,H-m)]);
+  const t=document.createElement('canvas');t.width=t.height=24;const tc=t.getContext('2d',{willReadFrequently:true});
+  const busy=([x,y])=>{tc.clearRect(0,0,24,24);tc.drawImage(ctx.canvas,x-m*1.1,y-m*1.1,m*2.2,m*2.2,0,0,24,24);const d=tc.getImageData(0,0,24,24).data;let a=0,b=0,e=0;for(let i=0;i<d.length;i+=4){const l=(.2126*d[i]+.7152*d[i+1]+.0722*d[i+2])/255;a+=l;b+=l*l;if(i%96)e+=Math.abs(l-(.2126*d[i-4]+.7152*d[i-3]+.0722*d[i-2])/255)}a/=576;return b/576-a*a+e/576*.5};
+  const best=cand.map(p=>[p,busy(p)+R()*.004]).sort((p,q)=>p[1]-q[1])[0][0];
+  ctx.save();ctx.translate(best[0],best[1]);ctx.rotate((R()-.5)*.6);ctx.globalAlpha=.92;ctx.drawImage(c,-sz/2,-sz/2);ctx.restore()}
+
 function renderPoster(canvas,fk,S){
   LEG=null;const F=FORMATS[fk],W=canvas.width,H=canvas.height,u=W/1000,ctx=canvas.getContext('2d',{willReadFrequently:true});
   const s={L:F.safe.l*W,R:W-F.safe.r*W,T:F.safe.t*H,B:H-F.safe.b*H};
@@ -680,6 +745,7 @@ function renderPoster(canvas,fk,S){
   if(tg==='name'||tg==='all')applyFx(canvas,ctx,S,u,'distort',TEXT_CAP.name);
   plan.draw();drawStickers(ctx,W,H,s,S,derive(S));
   LEG=null;
+  drawStamp(ctx,W,H,S,u);
   if(tg==='all')applyFx(canvas,ctx,S,u,'distort',TEXT_CAP.text);
   drawFrame(ctx,W,H,S,u);
   applyFx(canvas,ctx,S,u,'finish');
@@ -739,7 +805,7 @@ function genType(R,V){
 }
 function genLayout(R,V){const ph=artImg?1:0;return{kind:weighted(R,tW('layout',poolOnly({classic:1.1-V.chaos*.4,wall:.6,edge:.55,echo:.35+V.chaos*.4,scatter:V.chaos*1.1,rails:.7+V.chaos*.3,inset:.6+ph*.6,split:.45+ph*.6,paragraph:.7,boxed:.6,collage:.4+V.chaos*.4+ph*.8,stub:.55}))),frame:weighted(R,tW('frame',{none:1.6,border:.35,marks:.45})),extrasStyle:S.layout.extrasStyle,lineupColor:R()<.6?'ink':'accent',wScale:1,lScale:1,iScale:1,tilt:V.chaos>.45&&R()<V.chaos*.6?Math.round((R()-.5)*16*V.chaos):0}}
 function genArt(R,V){const kinds={none:.25+(1-V.chaos)*.3,blobs:1,rings:.8,houses:.7,flow:.5+V.chaos*.5,type:.5,checker:.35,brush:.6};if(artImg)kinds.upload=3;
-  return{kind:weighted(R,tW('art',kinds)),mask:weighted(R,tW('mask',{full:.9+V.chaos,pill:.7,circle:.5,arch:.5,blob:.3+V.chaos*.5})),opacity:+(.65+R()*.35).toFixed(2),scale:+(.8+R()*.6).toFixed(2),duotone:S.art.duotone,overlay:weighted(R,tW('overlay',{none:1.6,scribble:.2+V.chaos*.6,stars:.25,trace:artImg?.7:.15}))}}
+  return{kind:weighted(R,tW('art',kinds)),mask:weighted(R,tW('mask',{full:.9+V.chaos,pill:.7,circle:.5,arch:.5,blob:.3+V.chaos*.5})),opacity:+(.65+R()*.35).toFixed(2),scale:+(.8+R()*.6).toFixed(2),duotone:S.art.duotone,overlay:weighted(R,tW('overlay',{none:1.6,scribble:.2+V.chaos*.6,stars:.25,trace:artImg?.7:.15})),px:0,py:0,stamp:weighted(R,tW('stamp',{none:1.6,random:1})),stampFrame:'auto',stampSeed:Math.floor(R()*1e9)}}
 function genFx(R,V){const c=V.chaos,h=V.harsh,on=(k,p,lo,hi)=>{p=clamp(p*tm('fx:'+k+':on')/tm('fx:'+k+':off'),.02,.95);return R()<p?+(lo+R()*(hi-lo)).toFixed(2):0};
   return{master:1,wave:on('wave',.12+c*.35,.1,.2+.5*c),slit:on('slit',.08+c*.3,.15,.6),sort:on('sort',.12+c*.45,.15,.4+.5*c),rgb:on('rgb',.2+c*.4,.1,.6),bloom:on('bloom',.3+V.night*.3,.15,.6),dither:on('dither',.06+h*.22,.15,.7),blur:on('blur',.06+(1-h)*.14,.2,.8),xerox:on('xerox',.08+h*.2,.2,.8),grain:+(.12+R()*.4*(.5+h)).toFixed(2),target:weighted(R,tW('target',{art:.45,name:.4+V.chaos*.2,all:.1+V.chaos*.15}))}}
 const ALL_LAYOUTS=[['classic','classic'],['echo','echo'],['wall','wall'],['edge','edge'],['scatter','scatter'],['rails','rails'],['inset','inset'],['split','split'],['paragraph','run-in'],['boxed','boxed'],['collage','collage'],['stub','stub']];
@@ -856,7 +922,7 @@ function buildUI(){
   {const sw=document.querySelectorAll('.sec h2 small');const last=sw[sw.length-1];syncers.push(()=>{last.innerHTML=['bg','ink','accent','accent2'].map(k=>`<b style="display:inline-block;width:9px;height:9px;margin-left:2px;border:1px solid var(--b);background:${S.colour[k]}"></b>`).join('')})}
   cColor(b,'background','colour.bg');cColor(b,'ink','colour.ink');cColor(b,'accent','colour.accent');cColor(b,'accent 2','colour.accent2');
   cSeg(b,'text on photos','colour.auto',[[true,'auto contrast'],[false,'exact colours']]);
-  const cb=el('div',{className:'btns'});cb.append(btn('swap accents','',()=>{const c=S.colour;[c.accent,c.accent2]=[c.accent2,c.accent];sync();commit(true)}),btn('invert','swap background and ink',()=>{const c=S.colour;[c.bg,c.ink]=[c.ink,c.bg];sync();commit(true)}));b.append(cb);
+  const cb=el('div',{className:'btns'});cb.append(btn('★ palette to DJs','send these colours to the DJ mode as a colour option',()=>djSendPalette()),btn('swap accents','',()=>{const c=S.colour;[c.accent,c.accent2]=[c.accent2,c.accent];sync();commit(true)}),btn('invert','swap background and ink',()=>{const c=S.colour;[c.bg,c.ink]=[c.ink,c.bg];sync();commit(true)}));b.append(cb);
 
   b=sec('Art','art',()=>S.art.kind==='upload'?'my photo':S.art.kind);b.parentNode.classList.add('d-only');
   const thumb=el('div',{className:'thumb'});const pr0=el('div',{className:'row'});pr0.append(el('label',{textContent:'my photo'}),thumb);b.append(pr0);
@@ -864,6 +930,9 @@ function buildUI(){
   cSeg(b,'source','art.kind',[['none','none'],['blobs','blobs'],['rings','rings'],['houses','houses'],['flow','flow'],['brush','brush'],['type','type'],['checker','checker'],['upload','my photo']],v=>{if(v==='upload'&&!artImg)imgIn.click()});
   cSeg(b,'shape','art.mask',[['full','full'],['pill','pill'],['circle','circle'],['arch','arch'],['blob','blob']]);
   cSeg(b,'marks on top','art.overlay',[['none','none'],['scribble','scribble'],['stars','stars'],['trace','trace lines']]);
+  cSeg(b,'stairs stamp','art.stamp',[['none','none'],['random','random'],['down','doorway'],['steps','steps'],['spiral','spiral'],['block','block'],['hatch','hatch'],['ladder','ladder']]);
+  cSeg(b,'stamp frame','art.stampFrame',[['auto','auto'],['circle','circle'],['square','square'],['none','none']]);
+  {const r=el('div',{className:'btns'});r.append(btn('new stamp ↻','new position, angle and ink',()=>{S.art.stampSeed=newSeed();commit(true)}));b.append(r)}
   cRange(b,'opacity','art.opacity',0,1,.01);cRange(b,'scale','art.scale',.4,2.5,.01);
   cSeg(b,'image tint','art.duotone',[[true,'palette'],[false,'original']]);
   const imgIn=el('input',{type:'file',accept:'image/*'});imgIn.style.display='none';imgIn.onchange=()=>{if(imgIn.files[0])loadArtFile(imgIn.files[0]);imgIn.value=''};
@@ -996,7 +1065,7 @@ function djPresets(){const all=new Map(),hidden=new Set();
   for(const r of[...DJREMOTE,...djLocal.get()]){if(r.hidden)hidden.add(r.id)}
   for(const r of[...DJ_BUILTIN,...DJREMOTE,...djLocal.get()]){if(!r.hidden&&r.look&&!all.has(r.id))all.set(r.id,r)}
   for(const id of hidden)all.delete(id);return[...all.values()]}
-async function loadDjPresets(){if(!DB)return;try{const snap=await Promise.race([DB.collection('djpresets').get(),new Promise((_,rej)=>setTimeout(()=>rej(new Error('timeout')),10000))]);DJREMOTE=snap.docs.map(d=>({id:d.id,...d.data()}))}catch(e){}presetImgs();renderDjGrid();renderLikes();sync()}
+async function loadDjPresets(){if(!DB)return;try{const snap=await Promise.race([DB.collection('djpresets').get(),new Promise((_,rej)=>setTimeout(()=>rej(new Error('timeout')),10000))]);DJREMOTE=snap.docs.map(d=>({id:d.id,...d.data()}))}catch(e){}try{const sp=await DB.collection('djpalettes').get();DJPALREMOTE=sp.docs.map(d=>({id:d.id,...d.data()}))}catch(e){}presetImgs();renderDjGrid();renderLikes();sync()}
 const isDj=id=>djPresets().some(p=>p.id===id);
 async function djStar(id,look,name,photo){
   const own=['wordmark','lineup','info'].map(k=>look.type&&look.type[k]).filter(f=>f&&f.startsWith('u:'));
@@ -1032,16 +1101,31 @@ function presetImgs(){for(const p of djPresets())if(p.photo&&!PIMG[p.id]){const 
 function djPhoto(S){return MODE==='dj'&&S.dj&&S.dj.id?PIMG[S.dj.id]||null:null}
 const DJFX=[['grain',['grain']],['glitch',['sort','slit']],['rgb split',['rgb']],['glow',['bloom']],['soft focus',['blur']],['photocopy',['xerox']],['wave',['wave']]];
 function djLookFrom(base,d){const L=clone(base),o={};
-  o.layout=deepMerge(clone(DEFAULT.layout),L.layout);o.layout.wScale*=d.name||1;o.layout.lScale*=d.lineup||1;o.layout.iScale*=d.info||1;
+  o.layout=deepMerge(clone(DEFAULT.layout),L.layout);if(d.frame)o.layout.frame=d.frame;
   o.type=deepMerge(clone(DEFAULT.type),L.type);
-  o.vibe=deepMerge(clone(DEFAULT.vibe),L.vibe||{});
+  const bV=deepMerge(clone(DEFAULT.vibe),L.vibe||{});o.vibe=d.vibe?Object.assign(clone(bV),d.vibe):bV;
   const c=deepMerge(clone(DEFAULT.colour),L.colour);
-  if(d.colour==='gen')Object.assign(c,genColour(rng(d.cseed||1,'colour'),o.vibe));
-  else if(d.colour==='swap')[c.accent,c.accent2]=[c.accent2,c.accent];else if(d.colour==='invert')[c.bg,c.ink]=[c.ink,c.bg];else if(d.colour==='flip')[c.bg,c.accent]=[c.accent,c.bg];
+  if(d.colour==='gen')Object.assign(c,genColour(rng(d.cseed||1,'colour'),o.vibe));else if(d.colour==='pal'&&d.pc)Object.assign(c,d.pc);
+  const cv=d.cvar||({swap:'swap',invert:'invert',flip:'flip'}[d.colour]||'');
+  if(cv==='swap')[c.accent,c.accent2]=[c.accent2,c.accent];else if(cv==='invert')[c.bg,c.ink]=[c.ink,c.bg];else if(cv==='flip')[c.bg,c.accent]=[c.accent,c.bg];
   o.colour=c;
-  const a=deepMerge(clone(DEFAULT.art),L.art);if(a.kind==='upload'){a.scale*=d.scale||1;a.px=d.px||0;a.py=d.py||0}o.art=a;
-  const f=deepMerge(clone(DEFAULT.fx),L.fx);if(d.fx)for(const k in d.fx)f[k]=d.fx[k]/Math.max(.01,f.master);o.fx=f;
+  const a=deepMerge(clone(DEFAULT.art),L.art);if(a.kind==='upload'){a.scale*=d.scale||1;a.px=d.px||0;a.py=d.py||0}if(d.overlay)a.overlay=d.overlay;if(d.stampSeed)a.stampSeed=d.stampSeed;o.art=a;
+  const f=deepMerge(clone(DEFAULT.fx),L.fx);if(d.vibe)f.master=clamp(f.master*(.3+1.4*o.vibe.chaos)/(.3+1.4*bV.chaos),0,2);if(d.target)f.target=d.target;
+  if(d.fx)for(const k in d.fx)f[k]=d.fx[k]/Math.max(.01,f.master);o.fx=f;
   o.seeds=Object.assign(clone(DEFAULT.seeds),L.seeds||{},d.seeds||{});return o}
+// colour presets for DJs: every DJ look's palette, plus palettes a designer sends
+let DJPALREMOTE=[];const djPalLocal={get(){return ls.get('bpm-djpal')||[]},set(v){ls.set('bpm-djpal',v)}};
+const palKey=c=>[c.bg,c.ink,c.accent,c.accent2].join(',').toLowerCase();
+function djPalettes(){const out=[],seen=new Set(),gone=new Set([...DJPALREMOTE,...djPalLocal.get()].filter(r=>r.hidden).map(r=>r.id));
+  const add=(id,c,own)=>{const k=palKey(c);if(seen.has(k)||gone.has(id))return;seen.add(k);out.push({id,own,colour:{bg:c.bg,ink:c.ink,accent:c.accent,accent2:c.accent2}})};
+  for(const r of[...DJPALREMOTE,...djPalLocal.get()])if(!r.hidden&&r.colour)add(r.id,r.colour,true);
+  for(const p of djPresets())if(p.look&&p.look.colour)add('l:'+p.id,p.look.colour,false);return out}
+async function djSendPalette(){const c={bg:S.colour.bg,ink:S.colour.ink,accent:S.colour.accent,accent2:S.colour.accent2},id='c'+hash8(palKey(c)).toLowerCase();
+  if(djPalettes().some(p=>palKey(p.colour)===palKey(c))){status('DJs already have these colours');return}
+  const rec={id,colour:c,at:new Date().toISOString()};djPalLocal.set(djPalLocal.get().filter(r=>r.id!==id).concat([rec]));DJPALREMOTE=DJPALREMOTE.filter(r=>r.id!==id).concat([rec]);
+  if(DB){try{await DB.collection('djpalettes').doc(id).set(rec)}catch(e){}}sync();status('palette sent to the DJ mode ★')}
+async function djDropPalette(id){const rec={id,hidden:true,at:new Date().toISOString()};djPalLocal.set(djPalLocal.get().filter(r=>r.id!==id).concat([rec]));DJPALREMOTE=DJPALREMOTE.filter(r=>r.id!==id).concat([rec]);
+  if(DB){try{await DB.collection('djpalettes').doc(id).set(rec)}catch(e){}}sync();status('palette removed from the DJ mode')}
 const fxEff=(f,k)=>clamp((f[k]||0)*f.master,0,1.2);
 const fxMax=b=>clamp(Math.max(b*1.6,b+.2),.2,1.2);// how far DJs may push an effect beyond the look
 function applyDj(){const d=S.dj;if(!d.base)return;Object.assign(S,djLookFrom(d.base,d))}
@@ -1077,6 +1161,7 @@ function djRange(b,label,get,set,lo,hi,fmt){const e=el('input',{type:'range',ste
   syncers.push(()=>{if(!S.dj.base)return;e.min=lo();e.max=hi();const g=get();if(document.activeElement!==e)e.value=g;v.textContent=fmt(g)});return row(b,label,e,v)}
 function djSec(title,summary,open){const b=sec(title,null,summary);b.parentNode.classList.add('dj-only');if(open&&!(title in openSecs))b.parentNode.classList.remove('closed');return b}
 function buildDjUI(){const pct=v=>Math.round(v*100)+'%';
+  const segRow=(b,label,opts,get,set)=>{const e=el('div',{className:'seg'});for(const[v,t]of opts){const x=btn(t,'',()=>set(v),'');x.dataset.v=v;e.append(x)}syncers.push(()=>{const g=get();for(const x of e.children)x.classList.toggle('on',x.dataset.v===g)});return row(b,label,e)};
   // look
   let b=djSec('Look',()=>{const p=djPresets().find(x=>x.id===S.dj.id);return p?p.name||'':''},true);
   {const rw=el('div',{className:'djrow'});
@@ -1084,21 +1169,21 @@ function buildDjUI(){const pct=v=>Math.round(v*100)+'%';
    const rm=btn('× remove from DJ mode','designers only: take this look out of the DJ mode',()=>{const id=S.dj.id;djShuffle();djUnstar(id)},'btn desonly');
    rw.append(ah,rm);syncers.push(()=>{rm.style.display=UNLOCKED&&djPresets().some(p=>p.id===S.dj.id)?'':'none'});
    allEl=el('div',{className:'lkgrid djall'});acc.append(el('div',{className:'hint',textContent:'know what you want? pick it here instead of shuffling'}),allEl);b.append(rw,acc)}
-  // vibe (set by the look)
+  segRow(b,'frame',[['none','none'],['border','border'],['marks','crop marks']],()=>{const L=djL();return L?L.layout.frame:''},v=>djSet('frame',v,true));
+  // vibe
   b=djSec('Vibe',()=>{const L=djL();return L?`${L.vibe.night>.5?'night':'day'} · ${L.vibe.harsh>.5?'harsh':'soft'} · ${L.vibe.chaos>.5?'chaos':'clean'}`:''});
-  for(const[k,l]of[['night','day ↔ night'],['harsh','soft ↔ harsh'],['chaos','clean ↔ chaos']]){const e=el('input',{type:'range',min:0,max:1,step:.01,disabled:true}),v=el('span',{className:'val'});
-    syncers.push(()=>{const L=djL();if(L){e.value=L.vibe[k];v.textContent='🔒'}});row(b,l,e,v).classList.add('locked')}
-  // layout
-  b=djSec('Layout',()=>{const L=djL();return L?L.layout.kind:''});
-  lockRow(b,'layout',L=>L.layout.kind+' 🔒');lockRow(b,'frame',L=>L.layout.frame+' 🔒');
-  for(const[k,l]of[['name','name size'],['lineup','lineup size'],['info','info size']])djRange(b,l,()=>S.dj[k]||1,v=>djSet(k,v),()=>.85,()=>1.15,pct);
-  // type
-  b=djSec('Type',()=>{const L=djL();return L?F_(L.type.wordmark).label:''});
-  lockRow(b,'name font',L=>F_(L.type.wordmark).label+' 🔒');lockRow(b,'name style',L=>L.type.wStyle+' 🔒');lockRow(b,'lineup font',L=>F_(L.type.lineup).label+' 🔒');lockRow(b,'info font',L=>F_(L.type.info).label+' 🔒');
+  for(const[k,l]of[['night','day ↔ night'],['harsh','soft ↔ harsh'],['chaos','clean ↔ chaos']])djRange(b,l,()=>{const L=djL();return L?L.vibe[k]:0},v=>{const V=Object.assign({},djL().vibe,{[k]:v});S.dj.vibe=V;if(k!=='chaos'&&S.dj.colour!=='gen'){S.dj.colour='gen';S.dj.cseed=S.dj.cseed||newSeed()}applyDj();sync();commit()},()=>0,()=>1,pct);
+  {const r=el('div',{className:'btns'});r.append(btn('reset vibe','the vibe and colours as the designer set them',()=>{S.dj.vibe=null;S.dj.colour='orig';S.dj.cvar='';S.dj.pc=null;applyDj();sync();commit(true)}));b.append(r)}
   // colour
   b=djSec('Colour',()=>'');{const sm=b.parentNode.querySelector('h2 small');syncers.push(()=>{sm.innerHTML=['bg','ink','accent','accent2'].map(k=>`<b style="display:inline-block;width:9px;height:9px;margin-left:2px;border:1px solid var(--b);background:${S.colour[k]}"></b>`).join('')})}
-  {const e=el('div',{className:'seg'});for(const[v,t]of[['orig','original'],['swap','swap accents'],['invert','invert'],['flip','accent bg'],['gen','new ↻']]){const x=btn(t,v==='gen'?'new colours in the same mood':'',()=>{if(v==='gen')S.dj.cseed=newSeed();djSet('colour',v,true)},'');x.dataset.v=v;e.append(x)}
-    syncers.push(()=>{for(const x of e.children)x.classList.toggle('on',x.dataset.v===S.dj.colour)});row(b,'colours',e)}
+  {const grid=el('div',{className:'palgrid'});b.append(grid);let key='';
+   const chip=(c,on,title,click,rmFn)=>{const x=el('div',{className:'pal'+(on?' on':''),title});x.innerHTML=['bg','ink','accent','accent2'].map(k=>`<i style="background:${c[k]}"></i>`).join('');x.onclick=click;if(rmFn&&UNLOCKED){const r=btn('×','designers only: remove this palette','', 'desx');r.onclick=e=>{e.stopPropagation();rmFn()};x.append(r)}return x};
+   syncers.push(()=>{if(!S.dj.base)return;const own=deepMerge(clone(DEFAULT.colour),S.dj.base.colour||{}),pals=djPalettes().filter(p=>palKey(p.colour)!==palKey(own));
+     const k=palKey(own)+'|'+pals.map(p=>p.id).join()+'|'+S.dj.colour+'|'+(S.dj.pc?palKey(S.dj.pc):'')+'|'+UNLOCKED;if(k===key)return;key=k;grid.innerHTML='';
+     grid.append(chip(own,S.dj.colour==='orig','the look\'s own colours',()=>{S.dj.colour='orig';S.dj.pc=null;applyDj();sync();commit(true)}));
+     for(const p of pals)grid.append(chip(p.colour,S.dj.colour==='pal'&&S.dj.pc&&palKey(S.dj.pc)===palKey(p.colour),'',()=>{S.dj.colour='pal';S.dj.pc=clone(p.colour);applyDj();sync();commit(true)},p.own?()=>djDropPalette(p.id):null));
+     grid.append(chip(S.dj.colour==='gen'?S.colour:{bg:'#fff',ink:'#fff',accent:'#fff',accent2:'#fff'},S.dj.colour==='gen','new colours in the same mood',()=>{S.dj.colour='gen';S.dj.cseed=newSeed();applyDj();sync();commit(true)}));grid.lastChild.classList.add('newpal')})}
+  segRow(b,'variant',[['','as is'],['swap','swap accents'],['invert','invert'],['flip','accent bg']],()=>S.dj.cvar||'',v=>djSet('cvar',v,true));
   // art
   b=djSec('Art',()=>{const L=djL();return L?(L.art.kind==='upload'?'photo':L.art.kind):''});
   const photoRows=[],genRows=[];
@@ -1106,21 +1191,19 @@ function buildDjUI(){const pct=v=>Math.round(v*100)+'%';
    const updT=()=>{thumb.innerHTML='';if(artImgURL){thumb.append(el('img',{src:artImgURL}),btn('replace','',()=>window.__pickPhoto()),btn('remove','use the look\'s own image',()=>{artImg=null;artImgURL=null;idb.del('misc','art');window.__updThumb&&__updThumb();updT();sync();scheduleRender();renderDjGrid()}))}else thumb.append(btn('+ add your photo','',()=>window.__pickPhoto()))};
    window.__djThumb=updT;updT()}
   photoRows.push(djRange(b,'photo size',()=>S.dj.scale||1,v=>djSet('scale',v),()=>.7,()=>1.6,pct),djRange(b,'photo ↔',()=>S.dj.px||0,v=>djSet('px',v),()=>-1,()=>1,v=>v.toFixed(2)),djRange(b,'photo ↕',()=>S.dj.py||0,v=>djSet('py',v),()=>-1,()=>1,v=>v.toFixed(2)));
-  genRows.push(lockRow(b,'art',L=>L.art.kind+' 🔒'));
   {const r=el('div',{className:'btns'});r.append(btn('new pattern','same art, new randomness',()=>djSet('seeds',Object.assign({},S.dj.seeds||{},{art:newSeed()}),true)));b.append(r);genRows.push(r)}
-  lockRow(b,'shape',L=>L.art.mask+' 🔒');lockRow(b,'marks on top',L=>L.art.overlay+' 🔒');
+  segRow(b,'marks on top',[['none','none'],['scribble','scribble'],['stars','stars'],['trace','trace lines']],()=>{const L=djL();return L?L.art.overlay:''},v=>djSet('overlay',v,true));
+  {const r=el('div',{className:'btns'});r.append(btn('new stamp ↻','the stairs stamp in a new spot, angle and ink',()=>djSet('stampSeed',newSeed(),true)));b.append(r);syncers.push(()=>{const L=djL();r.style.display=L&&L.art.stamp&&L.art.stamp!=='none'?'':'none'})}
   syncers.push(()=>{const L=djL(),ph=!!L&&L.art.kind==='upload';for(const r of photoRows)r.style.display=ph?'':'none';for(const r of genRows)r.style.display=ph?'none':''});
   // effects: start at the look's own values, move within a limited range
   b=djSec('Effects',()=>{const L=djL();return L?DJFX.filter(([,ks])=>fxEff(L.fx,ks[0])>.01).length+' on':''});
   for(const[l,ks]of DJFX){const base=()=>{const f=deepMerge(clone(DEFAULT.fx),S.dj.base.fx||{});return fxEff(f,ks[0])};
     djRange(b,l,()=>fxEff(S.fx,ks[0]),v=>{const o=Object.assign({},S.dj.fx||{});ks.forEach((k,i)=>o[k]=v*(i?.7:1));djSet('fx',o)},()=>0,()=>fxMax(base()),pct)}
-  lockRow(b,'distort',L=>({art:'art only',name:'art + name',all:'everything'}[L.fx.target]||L.fx.target)+' 🔒');
-  {const r=el('div',{className:'btns'});r.append(btn('reroll effects','same settings, new randomness',()=>djSet('seeds',Object.assign({},S.dj.seeds||{},{fx:newSeed()}),true)),btn('back to the look','the effects as the designer set them',()=>djSet('fx',null,true)));b.append(r)}
+  segRow(b,'distort',[['art','art only'],['name','art + name'],['all','everything']],()=>{const L=djL();return L?L.fx.target:''},v=>djSet('target',v,true));
+  {const r=el('div',{className:'btns'});r.append(btn('reroll effects','same settings, new randomness',()=>djSet('seeds',Object.assign({},S.dj.seeds||{},{fx:newSeed()}),true)),btn('reset effects','the effects as the designer set them',()=>{S.dj.fx=null;S.dj.target=null;applyDj();sync();commit(true)}));b.append(r)}
   // likes
   b=djSec('Likes',()=>{const n=djFav.get().length;return n?n+' saved':''});djGridEl=el('div',{className:'lkgrid djgrid'});b.append(djGridEl);
 }
-
-
 /* ============ keys + init ============ */
 document.addEventListener('keydown',e=>{const t=e.target,typing=/INPUT|TEXTAREA|SELECT/.test(t.tagName);
   if(MODE!=='designer'&&!typing&&(e.code==='Space'||/^[lx]$/i.test(e.key))){if(e.code==='Space'){e.preventDefault();djShuffle()}return}

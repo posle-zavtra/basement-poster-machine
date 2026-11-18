@@ -11,12 +11,13 @@ A generative poster tool for [@basement.ldn](https://instagram.com/basement.ldn)
 - **Lock what you like:** keep a section fixed while the rest reshuffles.
 - **Like / dislike:** the shuffle learns what you like. Liked looks are saved so you can come back to them.
 - **Poster codes:** copy a code to reuse a look later with a new lineup.
+- **Stairs stamp:** the Basement stairs as an ink stamp (doorway, steps, spiral, block, hatch, ladder), placed in the emptiest part of the poster.
 - **Your own photos and fonts:** drop them in. They stay in your browser.
 
 ## Two modes
 
-- **For DJs** (default): the same panels as the designer mode, but the look arrives exactly as the designer sent it. Layout, fonts, vibe and art type are locked. DJs fill in the party, add their photo, pick colourways and move effects and sizes within a small range. **Shuffle** goes through the curated looks, **all looks** opens the full list, **♥ like** keeps favourites on that device.
-- **For designers**: the full controls, shuffle, likes and fonts, behind a 4-digit code. Use **★ send to DJs** (sends the photo too) or ☆ on a liked look to add it to the DJ mode.
+- **For DJs** (default): the look arrives exactly as the designer sent it. DJs fill in the party, add their photo, and tweak the frame, vibe, colours (from the designer's colour presets), marks on top, effects within a small range and distortion. Fonts and layout stay as designed. **Shuffle** goes through the curated looks, **all looks** opens the full list, **♥ like** keeps favourites on that device.
+- **For designers**: the full controls, shuffle, likes and fonts, behind a 4-digit code. Use **★ send to DJs** (sends the photo too) or ☆ on a liked look to add it to the DJ mode, and **★ palette to DJs** to add a colour preset.
 
 The curated looks are in `DJ_BUILTIN` in `src/src.html`. In designer mode, use "copy DJ looks file" to export them. The password is only a light gate to keep the full controls out of the way. It is not real security.
 
