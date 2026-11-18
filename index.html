@@ -71,9 +71,9 @@ input[type=color]{width:100%;height:22px;border:1px solid var(--line);padding:0 
 .lkgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;padding:4px 8px}
 .lk{position:relative}.lk img{width:100%;display:block;border:1px solid var(--b);cursor:pointer}.lk img:hover{outline:2px solid var(--b)}
 .lk button{position:absolute;top:2px;right:2px;font:inherit;font-size:10px;line-height:1;border:1px solid var(--b);background:#fff;color:var(--b);cursor:pointer;padding:1px 4px}
-#rate{display:flex;gap:10px;justify-content:center;padding:8px 14px 12px}
-#rate{align-items:center;flex-wrap:wrap}#rate #like,#rate #dislike{font-size:13px;padding:7px 22px;font-weight:700;letter-spacing:.04em}
-#codewrap{position:relative}#codetoggle{padding:6px 10px;font-weight:700}#codebox{display:none;position:absolute;bottom:calc(100% + 6px);right:0;background:#fff;border:1px solid var(--b);padding:6px;gap:6px;white-space:nowrap;z-index:5}#codebox.open{display:flex}#code{width:170px;font:inherit;font-size:12px;letter-spacing:.06em;padding:6px 8px;border:1px solid var(--b);color:var(--b)}
+#rate{display:flex;gap:10px;justify-content:space-between;padding:8px 14px 12px}#rate .grp{display:flex;gap:8px;align-items:center}body.dj #rate{justify-content:flex-end}
+#rate{align-items:center;flex-wrap:wrap}#rate #like,#rate #dislike,#rate #djsave{font-size:13px;padding:7px 22px;font-weight:700;letter-spacing:.04em}
+#codewrap{position:relative}#codetoggle{padding:6px 10px;font-weight:700}#codebox{display:none;position:absolute;bottom:calc(100% + 6px);left:0;background:#fff;border:1px solid var(--b);padding:6px;gap:6px;white-space:nowrap;z-index:5}#codebox.open{display:flex}#code{width:170px;font:inherit;font-size:12px;letter-spacing:.06em;padding:6px 8px;border:1px solid var(--b);color:var(--b)}
 .chips{display:flex;flex-wrap:wrap;gap:4px}.chips button{font:inherit;font-size:10px;border:1px solid var(--b);background:#fff;color:var(--b);padding:2px 6px;cursor:pointer}.chips button.on{background:var(--b);color:#fff}
 #foot{display:flex;justify-content:space-between;padding:6px 14px;border-top:1px solid var(--b);background:#fff;font-size:10px}
 #status{font-weight:700}
@@ -111,6 +111,10 @@ body:not(.dj) .dj-only{display:none!important}
 .djrow{display:flex;gap:6px;padding:2px 8px 4px;align-items:center}.djrow .btn:first-child{flex:1;text-align:left}
 .djacc{display:none;border-top:1px solid var(--line);border-bottom:1px solid var(--line);margin:4px 0;max-height:420px;overflow:auto}.djacc.open{display:block}
 .djall{grid-template-columns:repeat(4,1fr)}
+.lockv{opacity:.55}.row.locked{opacity:.55}.row.locked input{cursor:not-allowed}
+.btn.icon{font-size:15px;padding:1px 9px}
+.btn.desonly{color:#e8512a;border:1px dashed #e8512a;background:#fff8f5}.btn.desonly:hover{background:#ffeee6}
+.djrow{display:flex;gap:6px;padding:4px 8px}.djrow .btn{flex:1;text-align:left}.djrow .btn.desonly{flex:none}
 .lkgrid>.hint{grid-column:1/-1;padding-left:0}
 .lk.dj canvas{width:100%;display:block;border:1px solid var(--b);cursor:pointer;background:#fff}
 .lk.dj canvas:hover{outline:2px solid var(--b)}.lk.dj.on canvas{outline:3px solid var(--b);outline-offset:1px}
@@ -126,14 +130,14 @@ body:not(.dj) .dj-only{display:none!important}
   <div id="bar">
     <div class="seg" id="tabs"></div>
     <span class="grow"></span>
-    <button class="btn" id="addphoto" title="use your own photo as the art">+ photo</button>
-    <button class="btn" id="undo" title="undo (cmd+z)">← undo</button>
-    <button class="btn" id="redo" title="redo (shift+cmd+z)">redo →</button>
+    <button class="btn d-only" id="addphoto" title="use your own photo as the art">+ photo</button>
+    <button class="btn icon" id="undo" title="undo (cmd+z)">↶</button>
+    <button class="btn icon" id="redo" title="redo (shift+cmd+z)">↷</button>
     <button class="btn primary" id="shuffle" title="shuffle everything that isn't locked (space)">SHUFFLE ↻</button>
-    <button class="btn" id="dlall" title="download A4 pdf + IG post + IG story as one zip">download all</button>
+    <button class="btn" id="dlall" title="download A4 pdf + IG post + IG story as one zip">↓ download all</button>
   </div>
   <div id="view"></div>
-  <div id="rate"><button class="btn d-only" id="dislike" title="not for me: remember it and shuffle again (key: x)">✕ not for me</button><button class="btn primary dj-only" id="djsave" title="keep this look in your likes">♥ like</button><button class="btn d-only" id="djstar" title="send this look to the DJ mode">★ for DJs</button><button class="btn primary d-only" id="like" title="I like this look: save it and teach the shuffle (key: l)">♥ like</button><span id="codewrap"><button class="btn" id="codetoggle" title="poster code: copy or paste a code to reuse this look">#</button><span id="codebox"><input type="text" id="code" placeholder="poster code" spellcheck="false" title="the code for this look. paste a code here and press apply to bring a look back"><button class="btn" id="getcode" title="copy a code for this look">copy code</button><button class="btn" id="copylong" style="display:none" title="a longer code that works on its own, even outside this tool">long code</button><button class="btn" id="usecode" title="apply the code in the box">apply</button></span></span></div>
+  <div id="rate"><div class="grp"><button class="btn d-only" id="djstar" title="send this look to the DJ mode, with its photo">★ send to DJs</button><span id="codewrap"><button class="btn" id="codetoggle" title="poster code: copy or paste a code to reuse this look">#</button><span id="codebox"><input type="text" id="code" placeholder="poster code" spellcheck="false" title="the code for this look. paste a code here and press apply to bring a look back"><button class="btn" id="getcode" title="copy a code for this look">copy code</button><button class="btn" id="copylong" style="display:none" title="a longer code that works on its own, even outside this tool">long code</button><button class="btn" id="usecode" title="apply the code in the box">apply</button></span></span></div><div class="grp"><button class="btn d-only" id="dislike" title="not for me: remember it and shuffle again (key: x)">✕ not for me</button><button class="btn primary d-only" id="like" title="I like this look: save it and teach the shuffle (key: l)">♥ like</button><button class="btn primary dj-only" id="djsave" title="keep this look in your likes">♥ like</button></div></div>
   <div id="foot"><span id="status">ready</span><span class="dj-only">pick a look on the left, fill in your party, download</span><span class="d-only">lock a section to keep it · ↻ on a section shuffles just that part · drop an image here to use it as art</span></div>
 </main>
 <script>
@@ -238,7 +242,7 @@ const DEFAULT={
   fx:{master:1,wave:0,slit:0,sort:.35,rgb:.25,blur:0,bloom:.35,dither:0,xerox:0,grain:.35,target:'name'},
   export:{bleed:false},
   prefs:{learn:true,pool:[]},
-  dj:{id:null,base:null,seeds:null,cseed:null,vibe:null,grain:null,fxo:null,fx:1,colour:'orig',name:1,lineup:1,scale:1,px:0,py:0,photo:true}
+  dj:{v:2,id:null,base:null,seeds:null,cseed:null,colour:'orig',name:1,lineup:1,info:1,scale:1,px:0,py:0,fx:null}
 };
 function deepMerge(base,over){if(!over||typeof over!=='object')return base;for(const k in base){if(over[k]===undefined)continue;if(base[k]&&typeof base[k]==='object'&&!Array.isArray(base[k]))base[k]=deepMerge(base[k],over[k]);else base[k]=over[k]}return base}
 let S=deepMerge(clone(DEFAULT),ls.get('bpm-state'));S.prefs.pool=[];
@@ -573,8 +577,8 @@ const ART={
       o.globalAlpha=1;o.strokeStyle=rgba(P.bg,.5);for(let b=0;b<10;b++){o.lineWidth=lw*(.01+R()*.04);path((R()-.5)*lw*.8,(R()-.5)*lw*.8);o.stroke()}}o.globalAlpha=1},
   checker(o,w,h,P,R,u,S){const c=Math.min(w,h)/Math.max(2,Math.round(8/S.art.scale)),cols=Math.ceil(w/c),rows=Math.ceil(h/c),ox=(w-cols*c)/2,oy=(h-rows*c)/2;
     for(let j=0;j<rows;j++)for(let i=0;i<cols;i++){o.fillStyle=R()<.08?P.accent:((i+j)%2?P.ink:P.bg);o.fillRect(ox+i*c,oy+j*c,Math.ceil(c),Math.ceil(c))}},
-  upload(o,w,h,P,R,u,S){if(!artImg){ART.blobs(o,w,h,P,R,u,S);return}const k=S.art.scale,ir=artImg.width/artImg.height;let dw,dh;if(ir>w/h){dh=h*k;dw=dh*ir}else{dw=w*k;dh=dw/ir}
-    const ox=(S.art.px||0)*Math.abs(dw-w)/2,oy=(S.art.py||0)*Math.abs(dh-h)/2;o.drawImage(artImg,(w-dw)/2+ox,(h-dh)/2+oy,dw,dh);
+  upload(o,w,h,P,R,u,S){const im=artImg||djPhoto(S);if(!im){ART.blobs(o,w,h,P,R,u,S);return}const k=S.art.scale,ir=im.width/im.height;let dw,dh;if(ir>w/h){dh=h*k;dw=dh*ir}else{dw=w*k;dh=dw/ir}
+    const ox=(S.art.px||0)*Math.abs(dw-w)/2,oy=(S.art.py||0)*Math.abs(dh-h)/2;o.drawImage(im,(w-dw)/2+ox,(h-dh)/2+oy,dw,dh);
     if(S.art.duotone){const id=o.getImageData(0,0,w,h),d=id.data,a=hexToRgb(mix(P.bg,'#000000',.35)),b=hexToRgb(P.accent2),c=hexToRgb(P.accent);
       for(let i=0;i<d.length;i+=4){const l=(.2126*d[i]+.7152*d[i+1]+.0722*d[i+2])/255;const[A,B,t]=l<.5?[a,b,l*2]:[b,c,(l-.5)*2];d[i]=A[0]+(B[0]-A[0])*t;d[i+1]=A[1]+(B[1]-A[1])*t;d[i+2]=A[2]+(B[2]-A[2])*t}o.putImageData(id,0,0)}}
 };
@@ -800,7 +804,7 @@ function buildUI(){
   cText(b,'lineup','data.lineup',{multi:true,rows:6,ph:'one artist per line\nuse "A b2b B" for back to backs'});
   cSeg(b,'lineup case','data.lineupCase',[['asis','As typed'],['upper','UPPER'],['lower','lower']]);
   cText(b,'handle','data.handle',{ph:'@basement.ldn'});
-  {const lb=buildDjUI();if(!('Look'in openSecs))lb.parentNode.classList.remove('closed')}
+  buildDjUI();
 
   b=sec('Vibe',null,()=>`${S.vibe.night>.5?'night':'day'} · ${S.vibe.harsh>.5?'harsh':'soft'} · ${S.vibe.chaos>.5?'chaos':'clean'}`);b.parentNode.classList.add('d-only');
   b.append(el('div',{className:'hint',textContent:'drag to change the mood live. locked sections stay as they are. shuffle rolls new options in the same mood'}));
@@ -885,11 +889,11 @@ function buildUI(){
   // top bar
   const tabs=document.getElementById('tabs');for(const[v,t]of[['a4','A4'],['post','IG post'],['story','IG story'],['all','all formats']]){const x=btn(t,'',()=>{viewMode=v;ls.set('bpm-view2',v);syncTabs();layoutPreview()},'');x.dataset.v=v;tabs.append(x)}
   const syncTabs=()=>{for(const x of tabs.children)x.classList.toggle('on',x.dataset.v===viewMode)};syncTabs();
-  document.getElementById('shuffle').onclick=()=>MODE==='dj'?djShuffle():shuffle('all');document.getElementById('like').onclick=()=>rate('like');document.getElementById('getcode').onclick=getCode;document.getElementById('codetoggle').onclick=()=>{const b=document.getElementById('codebox');b.classList.toggle('open');document.getElementById('codetoggle').classList.toggle('on',b.classList.contains('open'));if(b.classList.contains('open'))document.getElementById('code').focus()};document.getElementById('usecode').onclick=()=>useCode(document.getElementById('code').value);document.getElementById('code').onkeydown=e=>{if(e.key==='Enter')useCode(e.target.value)};document.getElementById('copylong').onclick=async()=>{const ok=await copyText(lastLong);const c=document.getElementById('code');c.value=lastLong;c.select();status(ok?'long code copied':'long code is in the box, copy it')};document.getElementById('dislike').onclick=()=>rate('dislike');document.getElementById('addphoto').onclick=()=>window.__pickPhoto();document.getElementById('undo').onclick=undo;document.getElementById('redo').onclick=redo;document.getElementById('dlall').onclick=()=>exportAll();document.getElementById('djsave').onclick=()=>djSave();document.getElementById('djstar').onclick=()=>{const look=lookOf(S),id='p'+hash8(JSON.stringify(look)).toLowerCase();if(isDj(id)){status('already in the DJ mode');return}const n=prompt('name this look for the DJs',`look ${djPresets().length+1}`);if(n===null)return;djStar(id,look,n.trim())};
+  document.getElementById('shuffle').onclick=()=>MODE==='dj'?djShuffle():shuffle('all');document.getElementById('like').onclick=()=>rate('like');document.getElementById('getcode').onclick=getCode;document.getElementById('codetoggle').onclick=()=>{const b=document.getElementById('codebox');b.classList.toggle('open');document.getElementById('codetoggle').classList.toggle('on',b.classList.contains('open'));if(b.classList.contains('open'))document.getElementById('code').focus()};document.getElementById('usecode').onclick=()=>useCode(document.getElementById('code').value);document.getElementById('code').onkeydown=e=>{if(e.key==='Enter')useCode(e.target.value)};document.getElementById('copylong').onclick=async()=>{const ok=await copyText(lastLong);const c=document.getElementById('code');c.value=lastLong;c.select();status(ok?'long code copied':'long code is in the box, copy it')};document.getElementById('dislike').onclick=()=>rate('dislike');document.getElementById('addphoto').onclick=()=>window.__pickPhoto();document.getElementById('undo').onclick=undo;document.getElementById('redo').onclick=redo;document.getElementById('dlall').onclick=()=>exportAll();document.getElementById('djsave').onclick=()=>djSave();document.getElementById('djstar').onclick=()=>{const look=lookOf(S),id='p'+hash8(JSON.stringify(look)).toLowerCase();if(isDj(id)){status('already in the DJ mode');return}const n=prompt('name this look for the DJs',`look ${djPresets().length+1}`);if(n===null)return;let ph=null;if(S.art.kind==='upload'&&artImg){const c=document.createElement('canvas'),k=Math.min(1,900/Math.max(artImg.width,artImg.height));c.width=Math.round(artImg.width*k);c.height=Math.round(artImg.height*k);c.getContext('2d').drawImage(artImg,0,0,c.width,c.height);ph=c.toDataURL('image/jpeg',.8)}djStar(id,look,n.trim(),ph)};
   const stage=document.getElementById('stage');stage.ondragover=e=>{e.preventDefault()};stage.ondrop=e=>{e.preventDefault();const f=[...e.dataTransfer.files];const img=f.find(x=>x.type.startsWith('image/'));if(img)loadArtFile(img);const fonts=f.filter(x=>/\.(otf|ttf|woff2?|zip)$/i.test(x.name));if(fonts.length&&MODE==='designer')handleFontFiles(fonts)};
 }
-function loadArtFile(file){const r=new FileReader();r.onload=()=>{setArtImage(r.result,true);S.art.kind='upload';sync();commit(true)};r.readAsDataURL(file)}
-function setArtImage(url,persist){const im=new Image();im.onload=()=>{artImg=im;artImgURL=url;window.__updThumb&&__updThumb();window.__djThumb&&__djThumb();if(MODE==='dj'&&S.dj.base){S.dj.photo=true;applyDj();sync();renderDjGrid()}scheduleRender()};im.src=url;if(persist)idb.put('misc','art',url)}
+function loadArtFile(file){const r=new FileReader();r.onload=()=>{setArtImage(r.result,true);if(MODE!=='dj')S.art.kind='upload';sync();commit(true)};r.readAsDataURL(file)}
+function setArtImage(url,persist){const im=new Image();im.onload=()=>{artImg=im;artImgURL=url;window.__updThumb&&__updThumb();window.__djThumb&&__djThumb();if(MODE==='dj'&&S.dj.base){applyDj();sync();renderDjGrid()}scheduleRender()};im.src=url;if(persist)idb.put('misc','art',url)}
 
 /* ============ export ============ */
 function statusFn(){const e=document.getElementById('status');let tt=0;return t=>{e.textContent=t;if(document.body.classList.contains('dj')&&!/^rendering|^making/.test(t)){let x=document.getElementById('toast');if(!x){x=el('div',{id:'toast'});document.body.append(x)}x.textContent=t;x.classList.add('on');clearTimeout(tt);tt=setTimeout(()=>x.classList.remove('on'),1800)}}}const status=statusFn();
@@ -992,49 +996,19 @@ function djPresets(){const all=new Map(),hidden=new Set();
   for(const r of[...DJREMOTE,...djLocal.get()]){if(r.hidden)hidden.add(r.id)}
   for(const r of[...DJ_BUILTIN,...DJREMOTE,...djLocal.get()]){if(!r.hidden&&r.look&&!all.has(r.id))all.set(r.id,r)}
   for(const id of hidden)all.delete(id);return[...all.values()]}
-async function loadDjPresets(){if(!DB)return;try{const snap=await Promise.race([DB.collection('djpresets').get(),new Promise((_,rej)=>setTimeout(()=>rej(new Error('timeout')),10000))]);DJREMOTE=snap.docs.map(d=>({id:d.id,...d.data()}))}catch(e){}renderDjGrid();renderLikes()}
+async function loadDjPresets(){if(!DB)return;try{const snap=await Promise.race([DB.collection('djpresets').get(),new Promise((_,rej)=>setTimeout(()=>rej(new Error('timeout')),10000))]);DJREMOTE=snap.docs.map(d=>({id:d.id,...d.data()}))}catch(e){}presetImgs();renderDjGrid();renderLikes();sync()}
 const isDj=id=>djPresets().some(p=>p.id===id);
-async function djStar(id,look,name){
+async function djStar(id,look,name,photo){
   const own=['wordmark','lineup','info'].map(k=>look.type&&look.type[k]).filter(f=>f&&f.startsWith('u:'));
   const rec={id,name:name||'look '+(djPresets().length+1),look:clone(look),at:new Date().toISOString()};
-  djLocal.set(djLocal.get().filter(r=>r.id!==id).concat([rec]));DJREMOTE=DJREMOTE.filter(r=>r.id!==id).concat([rec]);
-  if(DB){try{await DB.collection('djpresets').doc(id).set(rec)}catch(e){}}
+  djLocal.set(djLocal.get().filter(r=>r.id!==id).concat([rec]));if(photo){rec.photo=photo}DJREMOTE=DJREMOTE.filter(r=>r.id!==id).concat([rec]);presetImgs();
+  if(DB){try{await DB.collection('djpresets').doc(id).set(rec)}catch(e){if(photo){delete rec.photo;try{await DB.collection('djpresets').doc(id).set(rec)}catch(e2){}status('sent, but the photo was too big to send along');return}}}
   renderDjGrid();renderLikes();
   status(own.length?`sent to DJs, but it uses your own font (${own.map(f=>f.slice(2)).join(', ')}). DJs don't have it, so they'll see a fallback`:'sent to the DJ mode ★')}
 async function djUnstar(id){const builtin=DJ_BUILTIN.some(p=>p.id===id);const rec={id,hidden:true,at:new Date().toISOString()};
   djLocal.set(djLocal.get().filter(r=>r.id!==id).concat(builtin?[rec]:[]));DJREMOTE=DJREMOTE.filter(r=>r.id!==id).concat(builtin?[rec]:[]);
   if(DB){try{builtin?await DB.collection('djpresets').doc(id).set(rec):await DB.collection('djpresets').doc(id).delete()}catch(e){}}
   renderDjGrid();renderLikes();status('removed from the DJ mode')}
-function djLookFrom(base,d,S0){// base look + the few things DJs may change
-  const L=clone(base),o={};
-  o.layout=deepMerge(clone(DEFAULT.layout),L.layout);o.layout.wScale*=d.name;o.layout.lScale*=d.lineup;
-  o.type=deepMerge(clone(DEFAULT.type),L.type);
-  const bV=deepMerge(clone(DEFAULT.vibe),L.vibe||S0.vibe),V=d.vibe?deepMerge(clone(bV),d.vibe):bV;
-  const c=d.colour==='gen'?deepMerge(clone(DEFAULT.colour),genColour(rng(d.cseed||1,'colour'),V)):deepMerge(clone(DEFAULT.colour),L.colour);
-  if(d.colour==='swap')[c.accent,c.accent2]=[c.accent2,c.accent];else if(d.colour==='invert')[c.bg,c.ink]=[c.ink,c.bg];else if(d.colour==='flip')[c.bg,c.accent]=[c.accent,c.bg];
-  c.auto=true;o.colour=c;
-  const a=deepMerge(clone(DEFAULT.art),L.art);a.scale*=d.scale;a.px=d.px;a.py=d.py;
-  if(artImg&&d.photo)a.kind='upload';else if(a.kind==='upload')a.kind='blobs';o.art=a;
-  const f=deepMerge(clone(DEFAULT.fx),L.fx);const m=f.master*(d.vibe?(.3+1.4*V.chaos)/(.3+1.4*bV.chaos):1);f.master=clamp(d.fx<=1?m*d.fx:m+(d.fx-1)*Math.max(.6,m*.6),0,2);if(d.grain!=null)f.grain=d.grain/Math.max(.2,f.master);if(d.fxo)for(const k in d.fxo)f[k]=d.fxo[k]/Math.max(.2,f.master);o.fx=f;
-  o.seeds=Object.assign(clone(DEFAULT.seeds),L.seeds||{},d.seeds||{});o.vibe=V;
-  return o}
-function applyDj(){const d=S.dj;if(!d.base)return;Object.assign(S,djLookFrom(d.base,d,S))}
-function djUse(p){S.dj=Object.assign(clone(DEFAULT.dj),{id:p.id,base:clone(p.look)});applyDj();sync();commit(true);renderDjGrid();status(`look: ${p.name||'preset'}`)}
-function djSet(k,v,snap=false){S.dj[k]=v;applyDj();sync();commit(snap)}
-function djNext(p,keepColour){const d=S.dj;
-  S.dj=Object.assign(clone(DEFAULT.dj),{id:p.id,base:clone(p.look),scale:d.scale,px:d.px,py:d.py,name:d.name,lineup:d.lineup,vibe:d.vibe,cseed:newSeed(),colour:keepColour?'orig':Math.random()<.65?'gen':pick(Math.random,['orig','swap','invert','flip']),seeds:keepColour?null:{layout:newSeed(),art:newSeed(),fx:newSeed()}});
-  applyDj();sync();commit(true);renderDjGrid()}
-function djShuffle(){const ps=djPresets();if(!ps.length)return;const ids=new Set(ps.map(p=>p.id));
-  // a shuffled deck: every look comes up once before any repeats
-  let bag=(ls.get('bpm-djbag')||[]).filter(id=>ids.has(id)&&id!==S.dj.id);
-  if(!bag.length){bag=ps.map(p=>p.id).filter(id=>id!==S.dj.id||ps.length===1);for(let i=bag.length-1;i>0;i--){const k=Math.floor(Math.random()*(i+1));[bag[i],bag[k]]=[bag[k],bag[i]]}}
-  const id=bag.shift();ls.set('bpm-djbag',bag);djNext(ps.find(p=>p.id===id));status('shuffled')}
-function djStep(dir){const ps=djPresets();if(!ps.length)return;let i=ps.findIndex(p=>p.id===S.dj.id);i=((i<0?0:i+dir)%ps.length+ps.length)%ps.length;djNext(ps[i],true)}
-// a DJ's own saved looks, on their device
-const djFav={get(){return ls.get('bpm-djfav')||[]},set(v){ls.set('bpm-djfav',v)}};
-function djSave(){if(!S.dj.base)return;const key=JSON.stringify(S.dj);if(djFav.get().some(f=>JSON.stringify(f.dj)===key)){status('already liked');return}
-  djFav.set([{id:'v'+Date.now().toString(36),at:new Date().toISOString(),dj:clone(S.dj)}].concat(djFav.get()));renderDjGrid();sync();status('liked ♥')}
-function djEnsure(){if(S.dj.base)return;const p=djPresets()[0];if(p)djUse(p)}
 async function unlock(pw){try{const h=[...new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode('bpm:'+pw)))].map(b=>b.toString(16).padStart(2,'0')).join('');if(h!==PW_HASH)return false;UNLOCKED=true;ls.set('bpm-unlock',PW_HASH);document.body.classList.add('unlocked');return true}catch(e){return false}}
 function setMode(m){if(m==='designer'&&!UNLOCKED)m='dj';MODE=m;ls.set('bpm-mode',m);document.body.classList.toggle('dj',m==='dj');document.body.classList.toggle('designer',m==='designer');
   if(m==='dj'){djEnsure();renderDjGrid();window.__djThumb&&__djThumb()}const sw=document.getElementById('modesw');if(sw)for(const x of sw.querySelectorAll('button[data-m]'))x.classList.toggle('on',x.dataset.m===m);layoutPreview()}
@@ -1050,62 +1024,102 @@ function buildModeSwitch(){const w=el('div',{id:'modesw'}),seg=el('div',{classNa
   inp.oninput=async()=>{inp.value=inp.value.replace(/\D/g,'').slice(0,4);draw();if(inp.value.length===4){const ok=await unlock(inp.value);if(ok){closeLock();setMode('designer');status('designer mode')}else{card.classList.add('bad');setTimeout(()=>{card.classList.remove('bad');inp.value='';draw()},450)}}};
   inp.onkeydown=e=>{if(e.key==='Escape')closeLock()};L.onclick=e=>{if(e.target.closest('.back'))closeLock();else inp.focus()};
   window.openLock=()=>{inp.value='';draw();L.classList.add('open');setTimeout(()=>inp.focus(),30)};window.closeLock=()=>{L.classList.remove('open')}}
-let djGridEl=null,djInfoEl=null,djRmEl=null,djT=0;
+/* ---- DJ mode: the look arrives exactly as the designer sent it. DJs get the same sections as designers,
+   but anything that defines the style (layout, fonts, vibe, art type) is shown locked, and the rest moves
+   only within a small range around the designer's settings ---- */
+const PIMG={};// preset photos the designer sent along
+function presetImgs(){for(const p of djPresets())if(p.photo&&!PIMG[p.id]){const im=new Image();im.onload=()=>{PIMG[p.id]=im;scheduleRender();renderDjGrid()};im.src=p.photo}}
+function djPhoto(S){return MODE==='dj'&&S.dj&&S.dj.id?PIMG[S.dj.id]||null:null}
+const DJFX=[['grain',['grain']],['glitch',['sort','slit']],['rgb split',['rgb']],['glow',['bloom']],['soft focus',['blur']],['photocopy',['xerox']],['wave',['wave']]];
+function djLookFrom(base,d){const L=clone(base),o={};
+  o.layout=deepMerge(clone(DEFAULT.layout),L.layout);o.layout.wScale*=d.name||1;o.layout.lScale*=d.lineup||1;o.layout.iScale*=d.info||1;
+  o.type=deepMerge(clone(DEFAULT.type),L.type);
+  o.vibe=deepMerge(clone(DEFAULT.vibe),L.vibe||{});
+  const c=deepMerge(clone(DEFAULT.colour),L.colour);
+  if(d.colour==='gen')Object.assign(c,genColour(rng(d.cseed||1,'colour'),o.vibe));
+  else if(d.colour==='swap')[c.accent,c.accent2]=[c.accent2,c.accent];else if(d.colour==='invert')[c.bg,c.ink]=[c.ink,c.bg];else if(d.colour==='flip')[c.bg,c.accent]=[c.accent,c.bg];
+  o.colour=c;
+  const a=deepMerge(clone(DEFAULT.art),L.art);if(a.kind==='upload'){a.scale*=d.scale||1;a.px=d.px||0;a.py=d.py||0}o.art=a;
+  const f=deepMerge(clone(DEFAULT.fx),L.fx);if(d.fx)for(const k in d.fx)f[k]=d.fx[k]/Math.max(.01,f.master);o.fx=f;
+  o.seeds=Object.assign(clone(DEFAULT.seeds),L.seeds||{},d.seeds||{});return o}
+const fxEff=(f,k)=>clamp((f[k]||0)*f.master,0,1.2);
+const fxMax=b=>clamp(Math.max(b*1.6,b+.2),.2,1.2);// how far DJs may push an effect beyond the look
+function applyDj(){const d=S.dj;if(!d.base)return;Object.assign(S,djLookFrom(d.base,d))}
+function djUse(p,quiet){S.dj=Object.assign(clone(DEFAULT.dj),{id:p.id,base:clone(p.look)});applyDj();sync();commit(true);renderDjGrid();if(!quiet)status(p.name||'look')}
+function djSet(k,v,snap=false){S.dj[k]=v;applyDj();sync();commit(snap)}
+function djShuffle(){const ps=djPresets();if(!ps.length)return;const ids=new Set(ps.map(p=>p.id));
+  // a shuffled deck: every look comes up once before any repeats
+  let bag=(ls.get('bpm-djbag')||[]).filter(id=>ids.has(id)&&id!==S.dj.id);
+  if(!bag.length){bag=ps.map(p=>p.id).filter(id=>id!==S.dj.id||ps.length===1);for(let i=bag.length-1;i>0;i--){const k=Math.floor(Math.random()*(i+1));[bag[i],bag[k]]=[bag[k],bag[i]]}}
+  const id=bag.shift();ls.set('bpm-djbag',bag);djUse(ps.find(p=>p.id===id))}
+// a DJ's own liked looks, on their device
+const djFav={get(){return ls.get('bpm-djfav')||[]},set(v){ls.set('bpm-djfav',v)}};
+function djSave(){if(!S.dj.base)return;const key=JSON.stringify(S.dj);if(djFav.get().some(f=>JSON.stringify(f.dj)===key)){status('already liked');return}
+  djFav.set([{id:'v'+Date.now().toString(36),at:new Date().toISOString(),dj:clone(S.dj)}].concat(djFav.get()));renderDjGrid();sync();status('liked ♥')}
+function djEnsure(){presetImgs();if(S.dj.base&&S.dj.v===2)return;const p=djPresets().find(x=>x.id===S.dj.id)||djPresets()[0];if(p)djUse(p,true)}
+let djGridEl=null,djT=0,allEl=null,allTok=0;
 function renderDjGrid(){if(!djGridEl)return;clearTimeout(djT);djT=setTimeout(drawDjGrid,60)}
-function djInfo(){if(!djInfoEl)return;const ps=djPresets(),i=ps.findIndex(p=>p.id===S.dj.id);djInfoEl.textContent=ps.length?`${i<0?'custom':(ps[i].name||'look')} · ${i<0?'–':i+1} of ${ps.length}`:'no looks yet';djRmEl.style.display=UNLOCKED&&i>=0?'':'none'}
-async function drawDjGrid(){if(!djGridEl)return;const favs=djFav.get();djInfo();drawAllLooks();
+async function thumbInto(cv,dj){const L=djLookFrom(dj.base,dj);try{await ensureFonts([L.type.wordmark,L.type.lineup,L.type.info])}catch(e){}
+  const S2=Object.assign(clone(S),L);S2.dj=clone(dj);try{renderPoster(cv,'a4',S2)}catch(e){}}
+async function drawDjGrid(){if(!djGridEl)return;const favs=djFav.get();drawAllLooks();
   djGridEl.innerHTML='';if(!favs.length){djGridEl.append(el('div',{className:'hint',textContent:'tap ♥ like under the poster to keep a look here'}));return}
-  for(const f of favs){const c=el('div',{className:'lk dj'+(JSON.stringify(f.dj)===JSON.stringify(S.dj)?' on':'')});const cv=el('canvas',{width:124,height:175,title:'use this look'});
-    cv.onclick=()=>{S.dj=clone(f.dj);applyDj();sync();commit(true);renderDjGrid();status('look restored')};
-    c.append(cv,btn('×','remove from my looks',()=>{djFav.set(djFav.get().filter(x=>x.id!==f.id));renderDjGrid()},''));djGridEl.append(c)}
-  const cvs=[...djGridEl.querySelectorAll('canvas')];
-  for(let k=0;k<favs.length;k++){const d=favs[k].dj;if(!d.base)continue;const L=djLookFrom(d.base,d,S);try{await ensureFonts([L.type.wordmark,L.type.lineup,L.type.info])}catch(e){}
-    try{renderPoster(cvs[k],'a4',Object.assign(clone(S),L))}catch(e){}}}
-function buildDjUI(){
-  const b=sec('Look',null,()=>{const p=djPresets().find(x=>x.id===S.dj.id);return p?p.name||'':''});b.parentNode.classList.add('dj-only');
-  {const top=el('div',{className:'djtop'});djInfoEl=el('span',{className:'djinfo'});
-   top.append(btn('‹','previous look',()=>djStep(-1)),djInfoEl,btn('›','next look',()=>djStep(1)));b.append(top);
-   const acc=el('div',{className:'djacc'}),ah=btn('all looks ▸','',()=>{const o=acc.classList.toggle('open');ah.textContent=o?'all looks ▾':'all looks ▸';if(o)drawAllLooks()},'btn');
-   allEl=el('div',{className:'lkgrid djall'});acc.append(el('div',{className:'hint',textContent:"know what you want? pick it here instead of shuffling"}),allEl);
-   djRmEl=btn('× remove from DJ mode','designers only',()=>{const id=S.dj.id;djShuffle();djUnstar(id)},'btn mini');
-   const rw=el('div',{className:'djrow'});rw.append(ah,djRmEl);b.append(rw,acc)}
-  syncers.push(djInfo);
-  // photo
-  const thumb=el('div',{className:'thumb'});const pr=el('div',{className:'row'});pr.append(el('label',{textContent:'photo'}),thumb);b.append(pr);
-  const updT=()=>{thumb.innerHTML='';if(artImgURL){thumb.append(el('img',{src:artImgURL}),btn('replace','',()=>window.__pickPhoto()),btn('remove','',()=>{artImg=null;artImgURL=null;idb.del('misc','art');window.__updThumb&&__updThumb();updT();applyDj();sync();commit(true);renderDjGrid()}))}else thumb.append(btn('+ add photo','use your own photo in the look',()=>window.__pickPhoto()))};
-  window.__djThumb=updT;updT();
-  const djR=(label,k,min,max,step,fmt)=>{const e=el('input',{type:'range',min,max,step}),v=el('span',{className:'val'});e.addEventListener('input',()=>{v.textContent=fmt(+e.value);djSet(k,+e.value)});e.addEventListener('change',()=>commit(true,false));syncers.push(()=>{e.value=S.dj[k];v.textContent=fmt(+S.dj[k])});return row(b,label,e,v)};
-  const pct=v=>Math.round(v*100)+'%';
-  const ph=[djR('photo size','scale',.7,1.6,.01,pct),djR('photo ↔','px',-1,1,.01,v=>v.toFixed(2)),djR('photo ↕','py',-1,1,.01,v=>v.toFixed(2))];
-  syncers.push(()=>{for(const r of ph)r.style.display=artImg&&S.dj.photo?'':'none'});
-  {const e=el('div',{className:'seg'});for(const[v,t]of[['orig','original'],['swap','swap accents'],['invert','invert'],['flip','accent bg'],['gen','new colours ↻']]){const x=btn(t,v==='gen'?'shuffle a new palette for this look':'',()=>{if(v==='gen')S.dj.cseed=newSeed();djSet('colour',v,true)},'');x.dataset.v=v;e.append(x)}
-    syncers.push(()=>{for(const x of e.children)x.classList.toggle('on',x.dataset.v===S.dj.colour)});row(b,'colours',e)}
-  {const curV=()=>djLookFrom(S.dj.base||{},S.dj,S).vibe;
-   for(const[k,l]of[['night','day ↔ night'],['harsh','soft ↔ harsh'],['chaos','clean ↔ chaos']]){const e=el('input',{type:'range',min:0,max:1,step:.01}),v=el('span',{className:'val'});
-    e.addEventListener('input',()=>{if(!S.dj.base)return;const V=Object.assign(curV(),{[k]:+e.value});S.dj.vibe=V;if(k!=='chaos'&&S.dj.colour!=='gen'){S.dj.colour='gen';S.dj.cseed=S.dj.cseed||newSeed()}v.textContent=pct(+e.value);applyDj();sync();commit()});
-    e.addEventListener('change',()=>commit(true,false));syncers.push(()=>{if(!S.dj.base)return;const V=curV();if(document.activeElement!==e)e.value=V[k];v.textContent=pct(+V[k])});row(b,l,e,v)}}
-  {const e=el('input',{type:'range',min:0,max:1,step:.01}),v=el('span',{className:'val'});const cur=()=>{if(!S.dj.base)return 0;const f=djLookFrom(S.dj.base,S.dj,S).fx;return clamp(f.grain*f.master,0,1)};
-   e.addEventListener('input',()=>{v.textContent=pct(+e.value);djSet('grain',+e.value)});e.addEventListener('change',()=>commit(true,false));syncers.push(()=>{const g=cur();if(document.activeElement!==e)e.value=g;v.textContent=pct(g)});row(b,'grain',e,v)}
-  // a few more effects, each capped: text keeps its own light version, so it stays readable
-  for(const[l,keys]of[['glitch',['sort','slit']],['rgb split',['rgb']],['glow',['bloom']],['soft focus',['blur']],['photocopy',['xerox']]]){const e=el('input',{type:'range',min:0,max:1,step:.01}),v=el('span',{className:'val'});
-    const cur=()=>{if(!S.dj.base)return 0;const f=djLookFrom(S.dj.base,S.dj,S).fx;return clamp(f[keys[0]]*f.master,0,1)};
-    e.addEventListener('input',()=>{v.textContent=pct(+e.value);const o=Object.assign({},S.dj.fxo||{});keys.forEach((k,i)=>o[k]=+e.value*(i?.7:1));djSet('fxo',o)});
-    e.addEventListener('change',()=>commit(true,false));syncers.push(()=>{const g=cur();if(document.activeElement!==e)e.value=g;v.textContent=pct(g)});row(b,l,e,v)}
-  djR('name size','name',.85,1.15,.01,pct);
-  djR('lineup size','lineup',.85,1.15,.01,pct);
-  const bb=el('div',{className:'btns'});
-  bb.append(btn('remix ↻','same look, new details: effects, pattern and small placement changes',()=>{djSet('seeds',{layout:newSeed(),art:newSeed(),fx:newSeed()},true)}),
-    btn('reset look','undo your tweaks to this look',()=>{const p=djPresets().find(x=>x.id===S.dj.id);if(p)djUse(p)}));
-  b.append(bb);
-  const lk=sec('Likes',null,()=>{const n=djFav.get().length;return n?n+' saved':''});lk.parentNode.classList.add('dj-only');
-  djGridEl=el('div',{className:'lkgrid djgrid'});lk.append(djGridEl);
-  return b}
-let allEl=null;
+  const cvs=[];for(const f of favs){const dj=Object.assign(clone(DEFAULT.dj),f.dj);const c=el('div',{className:'lk dj'+(JSON.stringify(f.dj)===JSON.stringify(S.dj)?' on':'')});const cv=el('canvas',{width:124,height:175,title:'use this look'});
+    cv.onclick=()=>{S.dj=clone(dj);applyDj();sync();commit(true);renderDjGrid();status('look restored')};
+    c.append(cv,btn('×','remove from likes',()=>{djFav.set(djFav.get().filter(x=>x.id!==f.id));renderDjGrid();sync()},''));djGridEl.append(c);cvs.push([cv,dj])}
+  for(const[cv,dj]of cvs)if(dj.base)await thumbInto(cv,dj)}
 async function drawAllLooks(){if(!allEl||!allEl.parentNode.classList.contains('open'))return;const my=++allTok,ps=djPresets();allEl.innerHTML='';
-  const cvs=ps.map(p=>{const c=el('div',{className:'lk dj'+(S.dj.id===p.id?' on':'')});const cv=el('canvas',{width:124,height:175,title:p.name||''});cv.onclick=()=>{djNext(p,true);status(p.name||'look')};c.append(cv,el('span',{className:'nm',textContent:p.name||''}));allEl.append(c);return cv});
-  for(let i=0;i<ps.length;i++){if(my!==allTok)return;const L=djLookFrom(ps[i].look,Object.assign(clone(DEFAULT.dj),{photo:S.dj.photo}),S);
-    try{await ensureFonts([L.type.wordmark,L.type.lineup,L.type.info])}catch(e){}try{renderPoster(cvs[i],'a4',Object.assign(clone(S),L))}catch(e){}await new Promise(r=>setTimeout(r,0))}}
-let allTok=0;
+  const cvs=ps.map(p=>{const c=el('div',{className:'lk dj'+(S.dj.id===p.id?' on':'')});const cv=el('canvas',{width:124,height:175,title:p.name||''});cv.onclick=()=>djUse(p);c.append(cv,el('span',{className:'nm',textContent:p.name||''}));allEl.append(c);return cv});
+  for(let i=0;i<ps.length;i++){if(my!==allTok)return;await thumbInto(cvs[i],Object.assign(clone(DEFAULT.dj),{id:ps[i].id,base:ps[i].look}));await new Promise(r=>setTimeout(r,0))}}
+const djL=()=>S.dj.base?djLookFrom(S.dj.base,S.dj):null;
+function lockRow(b,label,val){const v=el('span',{className:'lockv'});syncers.push(()=>{const L=djL();v.textContent=L?val(L):''});return row(b,label,v)}
+function djRange(b,label,get,set,lo,hi,fmt){const e=el('input',{type:'range',step:.01}),v=el('span',{className:'val'});
+  e.addEventListener('input',()=>{v.textContent=fmt(+e.value);set(+e.value)});e.addEventListener('change',()=>commit(true,false));
+  syncers.push(()=>{if(!S.dj.base)return;e.min=lo();e.max=hi();const g=get();if(document.activeElement!==e)e.value=g;v.textContent=fmt(g)});return row(b,label,e,v)}
+function djSec(title,summary,open){const b=sec(title,null,summary);b.parentNode.classList.add('dj-only');if(open&&!(title in openSecs))b.parentNode.classList.remove('closed');return b}
+function buildDjUI(){const pct=v=>Math.round(v*100)+'%';
+  // look
+  let b=djSec('Look',()=>{const p=djPresets().find(x=>x.id===S.dj.id);return p?p.name||'':''},true);
+  {const rw=el('div',{className:'djrow'});
+   const acc=el('div',{className:'djacc'}),ah=btn('all looks ▸','see every look and pick one',()=>{const o=acc.classList.toggle('open');ah.textContent=o?'all looks ▾':'all looks ▸';if(o)drawAllLooks()},'btn');
+   const rm=btn('× remove from DJ mode','designers only: take this look out of the DJ mode',()=>{const id=S.dj.id;djShuffle();djUnstar(id)},'btn desonly');
+   rw.append(ah,rm);syncers.push(()=>{rm.style.display=UNLOCKED&&djPresets().some(p=>p.id===S.dj.id)?'':'none'});
+   allEl=el('div',{className:'lkgrid djall'});acc.append(el('div',{className:'hint',textContent:'know what you want? pick it here instead of shuffling'}),allEl);b.append(rw,acc)}
+  // vibe (set by the look)
+  b=djSec('Vibe',()=>{const L=djL();return L?`${L.vibe.night>.5?'night':'day'} · ${L.vibe.harsh>.5?'harsh':'soft'} · ${L.vibe.chaos>.5?'chaos':'clean'}`:''});
+  for(const[k,l]of[['night','day ↔ night'],['harsh','soft ↔ harsh'],['chaos','clean ↔ chaos']]){const e=el('input',{type:'range',min:0,max:1,step:.01,disabled:true}),v=el('span',{className:'val'});
+    syncers.push(()=>{const L=djL();if(L){e.value=L.vibe[k];v.textContent='🔒'}});row(b,l,e,v).classList.add('locked')}
+  // layout
+  b=djSec('Layout',()=>{const L=djL();return L?L.layout.kind:''});
+  lockRow(b,'layout',L=>L.layout.kind+' 🔒');lockRow(b,'frame',L=>L.layout.frame+' 🔒');
+  for(const[k,l]of[['name','name size'],['lineup','lineup size'],['info','info size']])djRange(b,l,()=>S.dj[k]||1,v=>djSet(k,v),()=>.85,()=>1.15,pct);
+  // type
+  b=djSec('Type',()=>{const L=djL();return L?F_(L.type.wordmark).label:''});
+  lockRow(b,'name font',L=>F_(L.type.wordmark).label+' 🔒');lockRow(b,'name style',L=>L.type.wStyle+' 🔒');lockRow(b,'lineup font',L=>F_(L.type.lineup).label+' 🔒');lockRow(b,'info font',L=>F_(L.type.info).label+' 🔒');
+  // colour
+  b=djSec('Colour',()=>'');{const sm=b.parentNode.querySelector('h2 small');syncers.push(()=>{sm.innerHTML=['bg','ink','accent','accent2'].map(k=>`<b style="display:inline-block;width:9px;height:9px;margin-left:2px;border:1px solid var(--b);background:${S.colour[k]}"></b>`).join('')})}
+  {const e=el('div',{className:'seg'});for(const[v,t]of[['orig','original'],['swap','swap accents'],['invert','invert'],['flip','accent bg'],['gen','new ↻']]){const x=btn(t,v==='gen'?'new colours in the same mood':'',()=>{if(v==='gen')S.dj.cseed=newSeed();djSet('colour',v,true)},'');x.dataset.v=v;e.append(x)}
+    syncers.push(()=>{for(const x of e.children)x.classList.toggle('on',x.dataset.v===S.dj.colour)});row(b,'colours',e)}
+  // art
+  b=djSec('Art',()=>{const L=djL();return L?(L.art.kind==='upload'?'photo':L.art.kind):''});
+  const photoRows=[],genRows=[];
+  {const thumb=el('div',{className:'thumb'}),pr=el('div',{className:'row'});pr.append(el('label',{textContent:'photo'}),thumb);b.append(pr);photoRows.push(pr);
+   const updT=()=>{thumb.innerHTML='';if(artImgURL){thumb.append(el('img',{src:artImgURL}),btn('replace','',()=>window.__pickPhoto()),btn('remove','use the look\'s own image',()=>{artImg=null;artImgURL=null;idb.del('misc','art');window.__updThumb&&__updThumb();updT();sync();scheduleRender();renderDjGrid()}))}else thumb.append(btn('+ add your photo','',()=>window.__pickPhoto()))};
+   window.__djThumb=updT;updT()}
+  photoRows.push(djRange(b,'photo size',()=>S.dj.scale||1,v=>djSet('scale',v),()=>.7,()=>1.6,pct),djRange(b,'photo ↔',()=>S.dj.px||0,v=>djSet('px',v),()=>-1,()=>1,v=>v.toFixed(2)),djRange(b,'photo ↕',()=>S.dj.py||0,v=>djSet('py',v),()=>-1,()=>1,v=>v.toFixed(2)));
+  genRows.push(lockRow(b,'art',L=>L.art.kind+' 🔒'));
+  {const r=el('div',{className:'btns'});r.append(btn('new pattern','same art, new randomness',()=>djSet('seeds',Object.assign({},S.dj.seeds||{},{art:newSeed()}),true)));b.append(r);genRows.push(r)}
+  lockRow(b,'shape',L=>L.art.mask+' 🔒');lockRow(b,'marks on top',L=>L.art.overlay+' 🔒');
+  syncers.push(()=>{const L=djL(),ph=!!L&&L.art.kind==='upload';for(const r of photoRows)r.style.display=ph?'':'none';for(const r of genRows)r.style.display=ph?'none':''});
+  // effects: start at the look's own values, move within a limited range
+  b=djSec('Effects',()=>{const L=djL();return L?DJFX.filter(([,ks])=>fxEff(L.fx,ks[0])>.01).length+' on':''});
+  for(const[l,ks]of DJFX){const base=()=>{const f=deepMerge(clone(DEFAULT.fx),S.dj.base.fx||{});return fxEff(f,ks[0])};
+    djRange(b,l,()=>fxEff(S.fx,ks[0]),v=>{const o=Object.assign({},S.dj.fx||{});ks.forEach((k,i)=>o[k]=v*(i?.7:1));djSet('fx',o)},()=>0,()=>fxMax(base()),pct)}
+  lockRow(b,'distort',L=>({art:'art only',name:'art + name',all:'everything'}[L.fx.target]||L.fx.target)+' 🔒');
+  {const r=el('div',{className:'btns'});r.append(btn('reroll effects','same settings, new randomness',()=>djSet('seeds',Object.assign({},S.dj.seeds||{},{fx:newSeed()}),true)),btn('back to the look','the effects as the designer set them',()=>djSet('fx',null,true)));b.append(r)}
+  // likes
+  b=djSec('Likes',()=>{const n=djFav.get().length;return n?n+' saved':''});djGridEl=el('div',{className:'lkgrid djgrid'});b.append(djGridEl);
+}
+
 
 /* ============ keys + init ============ */
 document.addEventListener('keydown',e=>{const t=e.target,typing=/INPUT|TEXTAREA|SELECT/.test(t.tagName);
