@@ -13,9 +13,16 @@ A generative poster tool for [@basement.ldn](https://instagram.com/basement.ldn)
 - **Poster codes:** copy a code to reuse a look later with a new lineup.
 - **Your own photos and fonts:** drop them in. They stay in your browser.
 
+## Two modes
+
+- **For DJs** (default): fill in the party details, pick one of the curated looks, add a photo, and tweak a little: photo size and position, colourway, effects amount, name and lineup size, and a remix button. Text always stays readable.
+- **For designers**: the full controls, shuffle, likes and fonts, behind a password. Star a liked look (☆) to send it to the DJ mode.
+
+The curated looks are in `DJ_BUILTIN` in `src/src.html`. In designer mode, use "copy DJ looks file" to export them. The password is only a light gate to keep the full controls out of the way. It is not real security.
+
 ## Use
 
-Open `index.html` in any browser, or use the link above. There's nothing to install. Press **space** to shuffle, **L** to like, **X** to skip.
+Open `index.html` in any browser, or use the link above. There's nothing to install. In designer mode, press **space** to shuffle, **L** to like and **X** to skip.
 
 ## Fonts
 
