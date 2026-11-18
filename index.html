@@ -112,6 +112,7 @@ body:not(.dj) .dj-only{display:none!important}
 .djacc{display:none;border-top:1px solid var(--line);border-bottom:1px solid var(--line);margin:4px 0;max-height:420px;overflow:auto}.djacc.open{display:block}
 .djall{grid-template-columns:repeat(4,1fr)}
 .lockv{opacity:.55}
+body.dj .namerow input{opacity:.55;cursor:not-allowed}body.dj .namerow label::after{content:' 🔒'}
 .palgrid{display:grid;grid-template-columns:repeat(6,1fr);gap:6px;padding:4px 8px 6px}
 .pal{position:relative;display:grid;grid-template-columns:1fr 1fr;height:34px;border:1px solid var(--b);cursor:pointer}.pal i{display:block}.pal:hover{outline:2px solid var(--b)}.pal.on{outline:3px solid var(--b);outline-offset:1px}
 .pal.newpal::after{content:'↻';position:absolute;inset:0;display:grid;place-items:center;font-weight:700;color:var(--b);text-shadow:0 0 3px #fff}
@@ -903,7 +904,7 @@ function fontOptions(){const g={yours:[],builtin:[],google:[]};for(const f of Ob
 function buildUI(){
   let b=sec('Party',null,()=>[S.data.kicker,S.data.title].filter(Boolean).join(' '));
   cText(b,'kicker','data.kicker',{ph:'Out of the / Two years in the'});
-  cText(b,'name','data.title',{ph:'Basement'});
+  window.__nameRow=cText(b,'name','data.title',{ph:'Basement'});window.__nameRow.classList.add('namerow');
   cSeg(b,'name case','data.titleCase',[['asis','As typed'],['upper','UPPER'],['lower','lower']]);
   cText(b,'extra lines','data.extras',{multi:true,rows:2,ph:'optional, one per line\ne.g. free before 8'});
   cText(b,'event type','data.eventType',{ph:'All day eclectic rave'});
@@ -1128,7 +1129,7 @@ async function djUnstar(id){const builtin=DJ_BUILTIN.some(p=>p.id===id);const re
   if(DB){try{builtin?await DB.collection('djpresets').doc(id).set(rec):await DB.collection('djpresets').doc(id).delete()}catch(e){}}
   renderDjGrid();renderLikes();status('removed from the DJ mode')}
 async function unlock(pw){try{const h=[...new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode('bpm:'+pw)))].map(b=>b.toString(16).padStart(2,'0')).join('');if(h!==PW_HASH)return false;UNLOCKED=true;ls.set('bpm-unlock',PW_HASH);document.body.classList.add('unlocked');return true}catch(e){return false}}
-function setMode(m){if(m==='designer'&&!UNLOCKED)m='dj';MODE=m;ls.set('bpm-mode',m);document.body.classList.toggle('dj',m==='dj');document.body.classList.toggle('designer',m==='designer');
+function setMode(m){if(m==='designer'&&!UNLOCKED)m='dj';MODE=m;{const ni=window.__nameRow&&__nameRow.querySelector('input');if(ni){ni.readOnly=m==='dj';ni.title=m==='dj'?'the name is set by the designers':''}if(m==='dj'&&S.data.title!=='Basement'){S.data.title='Basement';sync();commit(true)}}ls.set('bpm-mode',m);document.body.classList.toggle('dj',m==='dj');document.body.classList.toggle('designer',m==='designer');
   if(m==='dj'){djEnsure();renderDjGrid();window.__djThumb&&__djThumb()}const sw=document.getElementById('modesw');if(sw)for(const x of sw.querySelectorAll('button[data-m]'))x.classList.toggle('on',x.dataset.m===m);layoutPreview()}
 function buildModeSwitch(){const w=el('div',{id:'modesw'}),seg=el('div',{className:'seg'});
   const a=btn('for DJs','pick a look and fill in your party',()=>setMode('dj'),'');a.dataset.m='dj';
