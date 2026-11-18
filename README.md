@@ -12,6 +12,7 @@ A generative poster tool for [@basement.ldn](https://instagram.com/basement.ldn)
 - **Like / dislike:** the shuffle learns what you like. Liked looks are saved so you can come back to them.
 - **Poster codes:** copy a code to reuse a look later with a new lineup.
 - **Stairs seal:** the Basement stairs carved like a hanko seal (steps, hollow, blocks, walker, door, spiral, ladder, rope ladder, two flights, arrow), framed or as a bare stamp, in red, black, white, indigo, gold or the palette, placed in the emptiest part of the poster.
+- **Photo looks:** low poly, overexposed flash and red flash.
 - **Your own photos and fonts:** drop them in. They stay in your browser.
 
 ## Two modes
