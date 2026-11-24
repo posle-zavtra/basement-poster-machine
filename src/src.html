@@ -240,7 +240,7 @@ const ls={get(k){try{return JSON.parse(localStorage.getItem(k))}catch(e){return 
 /* ============ state ============ */
 const DEFAULT={
   seeds:{layout:20261204,art:4122026,fx:2,type:7,colour:11},
-  data:{kicker:'Two years in the',title:'Basement',titleCase:'upper',extras:'',eventType:'2nd birthday',date:'2026-12-04',start:'6PM',end:'',venue:'Hoxton Cabin',address:'',lineup:'dbeater\nacidhousewife3000\ntttttttt\nVlad Zinn\nPoopy Breakfast',lineupCase:'asis',handle:'@basement.ldn',dateStyle:'big'},
+  data:{kicker:'two years in the basement',title:'Basement',titleCase:'asis',extras:'',eventType:'',date:'2026-12-04',start:'19:00',end:'',venue:'Hoxton Cabin',address:'E2 8DP',lineup:'dbeater\nacidhousewife3000\ntttttttt\nVlad Zinn\nPoopy Breakfast',lineupCase:'asis',handle:'@basement.ldn',dateStyle:'big'},
   vibe:{night:.85,harsh:.6,chaos:.8},
   locks:{layout:false,type:false,colour:false,art:false,fx:false},
   layout:{kind:'classic',lineupColor:'ink',wScale:1,lScale:1,iScale:1,tilt:0,frame:'none',extrasStyle:'text'},
@@ -255,6 +255,7 @@ const DEFAULT={
 };
 function deepMerge(base,over){if(!over||typeof over!=='object')return base;for(const k in base){if(over[k]===undefined)continue;if(base[k]&&typeof base[k]==='object'&&!Array.isArray(base[k]))base[k]=deepMerge(base[k],over[k]);else base[k]=over[k]}return base}
 let S=deepMerge(clone(DEFAULT),ls.get('bpm-state'));S.prefs.pool=[];
+{const d=S.data,old={kicker:'Two years in the',start:'6PM',titleCase:'upper',eventType:'2nd birthday'};for(const k in old)if(d[k]===old[k])d[k]=DEFAULT.data[k];if(!d.address&&d.venue==='Hoxton Cabin')d.address=DEFAULT.data.address}// party details still on the old sample text move to the current one
 let artImg=null,artImgURL=null;
 let viewMode=ls.get('bpm-view2')||'a4';
 
@@ -1469,7 +1470,7 @@ function loadProject(file){const r=new FileReader();r.onload=()=>{try{const j=JS
 /* ============ likes / dislikes ============ */
 let DB=null;
 const fbLocal={get(){return ls.get('bpm-feedback')||[]},set(v){ls.set('bpm-feedback',v.slice(-300))}};
-function lookOf(S){return clone({layout:S.layout,type:S.type,colour:S.colour,art:S.art,fx:S.fx,seeds:S.seeds,vibe:S.vibe,...(S.gfx&&S.gfx.length?{gfx:S.gfx}:{})})}
+function lookOf(S){return clone({layout:S.layout,type:S.type,colour:S.colour,art:S.art,fx:S.fx,seeds:S.seeds,vibe:S.vibe,case:{title:S.data.titleCase||'asis',lineup:S.data.lineupCase||'asis'},...(S.gfx&&S.gfx.length?{gfx:S.gfx}:{})})}
 function thumbOf(){const c=document.createElement('canvas');c.width=248;c.height=351;try{renderPoster(c,'a4',S)}catch(e){}return c.toDataURL('image/jpeg',.72)}
 async function loadFeedback(){
   let local=fbLocal.get();
@@ -1489,7 +1490,7 @@ async function rate(verdict){
   if(verdict==='like')status(`liked · ${n} like${n>1?'s':''} so far`);else{status('noted, shuffling');shuffle('all')}
 }
 async function removeFeedback(id){FEEDBACK=FEEDBACK.filter(r=>r.id!==id);rebuildTaste();renderLikes();fbLocal.set(FEEDBACK.slice().reverse());if(DB){try{await DB.collection('feedback').doc(id).delete()}catch(e){}}}
-function applyLook(r){if(MODE==='dj'){S.dj=Object.assign(clone(DEFAULT.dj),{id:'code',base:clone(r.look),img:S.dj.img||null});applyDj();sync();commit(true);renderDjGrid();status('look restored');return}const L=clone(r.look);for(const k of['layout','type','colour','art','fx','seeds','vibe'])if(L[k])S[k]=deepMerge(clone(DEFAULT[k]||{}),L[k]);S.gfx=L.gfx||null;sync();commit(true);status('look restored')}
+function applyLook(r){if(MODE==='dj'){S.dj=Object.assign(clone(DEFAULT.dj),{id:'code',base:clone(r.look),img:S.dj.img||null});lookCase(r.look);applyDj();sync();commit(true);renderDjGrid();status('look restored');return}const L=clone(r.look);for(const k of['layout','type','colour','art','fx','seeds','vibe'])if(L[k])S[k]=deepMerge(clone(DEFAULT[k]||{}),L[k]);if(L.case)lookCase(L);S.gfx=L.gfx||null;sync();commit(true);status('look restored')}
 let likesEl=null,tasteEl=null;
 function renderLikes(){if(!likesEl)return;const likes=FEEDBACK.filter(r=>r.verdict==='like'),dis=FEEDBACK.length-likes.length;
   if(tasteEl)tasteEl.textContent=`${likes.length} like${likes.length===1?'':'s'} · ${dis} dislike${dis===1?'':'s'}${tasteOn()?' · shuffle is learning':''}`;
@@ -1637,8 +1638,9 @@ async function djDropPalette(id){const rec={id,hidden:true,at:new Date().toISOSt
   if(DB){try{await DB.collection('djpalettes').doc(id).set(rec)}catch(e){}}sync();siteChanged();status('palette removed from the DJ mode')}
 const fxEff=(f,k)=>clamp((f[k]||0)*f.master,0,1.2);
 const fxMax=b=>clamp(Math.max(b*1.6,b+.2),.2,1.2);// how far DJs may push an effect beyond the look
+function lookCase(L){const c=(L&&L.case)||{};S.data.titleCase=c.title||'asis';S.data.lineupCase=c.lineup||'asis'}
 function applyDj(){const d=S.dj;if(!d.base)return;Object.assign(S,djLookFrom(d.base,d))}
-function djUse(p,quiet){S.dj=Object.assign(clone(DEFAULT.dj),{id:p.id,base:clone(p.look),img:S.dj.img||null});applyDj();sync();commit(true);renderDjGrid();if(!quiet)status(p.name||'look')}
+function djUse(p,quiet){S.dj=Object.assign(clone(DEFAULT.dj),{id:p.id,base:clone(p.look),img:S.dj.img||null});lookCase(p.look);applyDj();sync();commit(true);renderDjGrid();if(!quiet)status(p.name||'look')}
 function djSet(k,v,snap=false){S.dj[k]=v;applyDj();sync();commit(snap)}
 function djShuffle(){const ps=djPresets();if(!ps.length)return;const ids=new Set(ps.map(p=>p.id));
   // a shuffled deck: every look comes up once before any repeats
@@ -1653,11 +1655,11 @@ function djEnsure(){presetImgs();if(S.dj.base&&S.dj.v===2)return;const p=djPrese
 let djGridEl=null,djT=0,allEl=null,allTok=0;
 function renderDjGrid(){if(!djGridEl)return;clearTimeout(djT);djT=setTimeout(drawDjGrid,60)}
 async function thumbInto(cv,dj){const L=djLookFrom(dj.base,dj);try{await ensureFonts([L.type.wordmark,L.type.lineup,L.type.info])}catch(e){}
-  const S2=Object.assign(clone(S),L);S2.dj=clone(dj);try{renderPoster(cv,'a4',S2)}catch(e){}}
+  const S2=Object.assign(clone(S),L);S2.dj=clone(dj);{const c=(dj.base&&dj.base.case)||{};S2.data.titleCase=c.title||'asis';S2.data.lineupCase=c.lineup||'asis'}try{renderPoster(cv,'a4',S2)}catch(e){}}
 async function drawDjGrid(){if(!djGridEl)return;const favs=djFav.get();drawAllLooks();
   djGridEl.innerHTML='';if(!favs.length){djGridEl.append(el('div',{className:'hint',textContent:'tap ♥ like under the poster to keep a look here'}));return}
   const cvs=[];for(const f of favs){const dj=Object.assign(clone(DEFAULT.dj),f.dj);const c=el('div',{className:'lk dj'+(JSON.stringify(f.dj)===JSON.stringify(S.dj)?' on':'')});const cv=el('canvas',{width:124,height:175,title:'use this look'});
-    cv.onclick=()=>{S.dj=clone(dj);applyDj();sync();commit(true);renderDjGrid();status('look restored')};
+    cv.onclick=()=>{S.dj=clone(dj);lookCase(dj.base);applyDj();sync();commit(true);renderDjGrid();status('look restored')};
     c.append(cv,btn('×','remove from likes',()=>{djFav.set(djFav.get().filter(x=>x.id!==f.id));renderDjGrid();sync()},''));djGridEl.append(c);cvs.push([cv,dj])}
   for(const[cv,dj]of cvs)if(dj.base)await thumbInto(cv,dj)}
 async function drawAllLooks(){if(!allEl||!allEl.parentNode.classList.contains('open'))return;const my=++allTok,ps=djPresets();allEl.innerHTML='';
