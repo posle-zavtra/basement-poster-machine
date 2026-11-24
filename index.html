@@ -73,7 +73,7 @@ input[type=color]{width:100%;height:22px;border:1px solid var(--line);padding:0 
 .lk button{position:absolute;top:2px;right:2px;font:inherit;font-size:10px;line-height:1;border:1px solid var(--b);background:#fff;color:var(--b);cursor:pointer;padding:1px 4px}
 #rate{display:flex;gap:10px;justify-content:space-between;padding:8px 14px 12px}#rate .grp{display:flex;gap:8px;align-items:center}body.dj #rate{justify-content:flex-end}
 #rate{align-items:center;flex-wrap:wrap}#rate #like,#rate #dislike,#rate #djsave{font-size:13px;padding:7px 22px;font-weight:700;letter-spacing:.04em}
-#codewrap{position:relative}#codetoggle{padding:6px 10px;font-weight:700}#codebox{display:none;position:absolute;bottom:calc(100% + 6px);left:0;background:#fff;border:1px solid var(--b);padding:6px;gap:6px;white-space:nowrap;z-index:5}#codebox.open{display:flex}#code{width:170px;font:inherit;font-size:12px;letter-spacing:.06em;padding:6px 8px;border:1px solid var(--b);color:var(--b)}
+#codewrap{position:relative}#codetoggle{padding:6px 10px;font-weight:700}#codebox{display:none;position:absolute;bottom:calc(100% + 6px);left:0;background:#fff;border:1px solid var(--b);padding:6px;gap:6px;white-space:nowrap;z-index:5}#codebox.open{display:flex}body.dj #codebox{left:auto;right:0}#codebox{max-width:calc(100vw - 24px)}#codebox #code{min-width:0;flex:1 1 170px}#code{width:170px;font:inherit;font-size:12px;letter-spacing:.06em;padding:6px 8px;border:1px solid var(--b);color:var(--b)}
 .chips{display:flex;flex-wrap:wrap;gap:4px}.chips button{font:inherit;font-size:10px;border:1px solid var(--b);background:#fff;color:var(--b);padding:2px 6px;cursor:pointer}.chips button.on{background:var(--b);color:#fff}
 #foot{display:flex;justify-content:space-between;padding:6px 14px;border-top:1px solid var(--b);background:#fff;font-size:10px}
 #status{font-weight:700}
@@ -244,7 +244,7 @@ const DEFAULT={
   vibe:{night:.85,harsh:.6,chaos:.8},
   locks:{layout:false,type:false,colour:false,art:false,fx:false},
   layout:{kind:'classic',lineupColor:'ink',wScale:1,lScale:1,iScale:1,tilt:0,frame:'none',extrasStyle:'text'},
-  type:{wordmark:'g:UnifrakturMaguntia',wStyle:'fill',stretch:1,lineup:'g:Instrument Serif',info:'b:Space Mono:400',tracking:.12,pool:'all',op:{name:1,lineup:1,info:1,date:1}},
+  type:{wordmark:'g:UnifrakturMaguntia',wStyle:'fill',stretch:1,lineup:'g:Instrument Serif',info:'b:Space Mono:400',tracking:.12,leading:1,pool:'all',op:{name:1,lineup:1,info:1,date:1}},
   colour:{bg:'#140b16',ink:'#e6d2ff',accent:'#c06bff',accent2:'#ff4f9a',auto:true},
   art:{kind:'rings',mask:'pill',opacity:1,scale:1,px:0,py:0,duotone:true,clean:false,overlay:'none',photoFx:'none',stamp:'none',stampFrame:'auto',stampStyle:'auto',stampInk:'red',stampColor:'#d42a1e',stampPos:0,stampSize:1,stampSeed:1,stampAnchor:null},
   fx:{master:1,wave:0,slit:0,sort:.35,rgb:.25,blur:0,bloom:.35,dither:0,xerox:0,paper:0,riso:0,glowText:false,grain:.35,target:'name'},
@@ -284,7 +284,7 @@ function regionStats(ctx,x0,y0,x1,y1){const T=ctx.getTransform(),xs=[],ys=[];for
 function legible(ctx,fill,x0,y0,x1,y1,th){if(!LEG||typeof fill!=='string')return{fill,halo:null};const st=regionStats(ctx,x0,y0,x1,y1);if(!st)return{fill,halo:null};
   let best=fill;if(Math.abs(lum(fill)-st.mean)<th){const P=LEG.P,c=[fill,P.ink,P.bg,P.accent,P.accent2,'#ffffff','#111111'];best=c.reduce((a,b)=>Math.abs(lum(b)-st.mean)>Math.abs(lum(a)-st.mean)?b:a)}
   const busy=st.std>.17||Math.abs(lum(best)-st.mean)<th;const bg=LEG.P.bg;return{fill:best,halo:busy?(Math.abs(lum(bg)-lum(best))>.3?bg:(lum(best)>.5?'#111111':'#ffffff')):null}}
-let RS=null,RS_iS=0,RS_D=null,TXTROLE=null;// the state being rendered, and a role hint for text that can't be told apart by font
+let RS=null,RS_iS=0,RS_D=null,TXTROLE=null;const LDG=()=>(RS&&RS.type&&RS.type.leading)||1;// line spacing for the lineup and info lines// the state being rendered, and a role hint for text that can't be told apart by font
 function txtRole(o,text){if(TXTROLE)return TXTROLE;if(!RS)return null;const t=String(text||'').toLowerCase().replace(/^[>\s]+/,'');if(RS_D&&t){if(RS_D.kicker&&t===RS_D.kicker.toLowerCase())return'kicker';if(RS_D.lineup.some(n=>n&&t.includes(n.toLowerCase())))return'lineup'}const fi=F_(RS.type.info),fl=F_(RS.type.lineup);if(fi!==fl)return o.f===fl?'lineup':o.f===fi?'info':null;return o.f===fl?(o.size>RS_iS*1.25?'lineup':'info'):null}
 function txt(ctx,text,x,y,o){
   if(!text)return 0;const op=RS&&RS.type.op?RS.type.op[txtRole(o,text)]:null;if(op!=null&&op<1){ctx.save();ctx.globalAlpha*=op;const r=txt0(ctx,text,x,y,o);ctx.restore();return r}return txt0(ctx,text,x,y,o)}
@@ -382,7 +382,7 @@ function wrapTokens(ctx,tokens,sep,maxW,f,size,tracking=0){const out=[];let cur=
 const LAYOUTS={
 classic(ctx,W,H,s,S,K){
   const P=S.colour,D=derive(S),fi=F_(S.type.info),fl=F_(S.type.lineup),tr=S.type.tracking;
-  const iS=W*.0165*S.layout.iScale*K.info,lh=iS*1.4,ops=[],nops=[];const iO={f:fi,size:iS,tracking:tr,fill:P.ink};
+  const iS=W*.0165*S.layout.iScale*K.info,lh=iS*1.4*LDG(),ops=[],nops=[];const iO={f:fi,size:iS,tracking:tr,fill:P.ink};
   ops.push(()=>{lines(ctx,D.topLeft,s.L,s.T+iS,lh,iO);lines(ctx,D.topRight,s.R,s.T+iS,lh,{...iO,align:'right'});txt(ctx,D.handle,W/2,s.B,{...iO,align:'center'})});
   const bd=bigDate(ctx,W,s,S,D,K);if(bd)ops.push(bd.draw);
   const midTop=s.T+Math.max(D.topLeft.length,D.topRight.length,1)*lh+iS*2,midBot=s.B-(bd?bd.h*.55:iS*2.5);
@@ -401,7 +401,7 @@ classic(ctx,W,H,s,S,K){
 },
 echo(ctx,W,H,s,S,K){
   const P=S.colour,D=derive(S),fi=F_(S.type.info),fl=F_(S.type.lineup),tr=S.type.tracking;
-  const iS=W*.0165*S.layout.iScale*K.info,lh=iS*1.4,ops=[],nops=[],iO={f:fi,size:iS,tracking:tr,fill:P.ink};
+  const iS=W*.0165*S.layout.iScale*K.info,lh=iS*1.4*LDG(),ops=[],nops=[],iO={f:fi,size:iS,tracking:tr,fill:P.ink};
   const left=[...D.topLeft,...D.topRight];ops.push(()=>{lines(ctx,left,s.L,s.T+iS,lh,iO);txt(ctx,D.handle,W/2,s.B,{...iO,align:'center'})});
   const kS=W*.03*S.layout.lScale*K.kicker;const right=[D.kicker,...D.extras].filter(Boolean);
   ops.push(()=>lines(ctx,right,s.R,s.T+kS,kS*1.25,{f:fl,size:kS,fill:P.accent,align:'right'}));
@@ -420,7 +420,7 @@ echo(ctx,W,H,s,S,K){
 },
 wall(ctx,W,H,s,S,K){
   const P=S.colour,D=derive(S),fi=F_(S.type.info),fl=F_(S.type.lineup),tr=S.type.tracking;
-  const iS=W*.0165*S.layout.iScale*K.info,lh=iS*1.4,ops=[],nops=[],iO={f:fi,size:iS,tracking:tr,fill:P.ink};
+  const iS=W*.0165*S.layout.iScale*K.info,lh=iS*1.4*LDG(),ops=[],nops=[],iO={f:fi,size:iS,tracking:tr,fill:P.ink};
   const kS=W*.032*S.layout.lScale*K.kicker;let y=s.T;
   if(D.kicker){const yy=y+kS;ops.push(()=>txt(ctx,D.kicker,s.L,yy,{f:fl,size:kS,fill:P.ink}));y+=kS*1.3}
   const wm=wordmark(ctx,D.title,(s.R-s.L)*.62*S.layout.wScale,H*.16,S);const wy=y;nops.push(()=>wm.draw(s.L+wm.w/2,wy));
@@ -438,7 +438,7 @@ wall(ctx,W,H,s,S,K){
 },
 edge(ctx,W,H,s,S,K){
   const P=S.colour,D=derive(S),fi=F_(S.type.info),fl=F_(S.type.lineup),tr=S.type.tracking;
-  const iS=W*.0165*S.layout.iScale*K.info,lh=iS*1.4,ops=[],nops=[],iO={f:fi,size:iS,tracking:tr,fill:P.ink};
+  const iS=W*.0165*S.layout.iScale*K.info,lh=iS*1.4*LDG(),ops=[],nops=[],iO={f:fi,size:iS,tracking:tr,fill:P.ink};
   const wm=wordmark(ctx,D.title,s.B-s.T,(s.R-s.L)*.36*S.layout.wScale,S);
   nops.push(()=>{ctx.save();ctx.translate(s.L+wm.h/2,(s.T+s.B)/2);ctx.rotate(-Math.PI/2);wm.draw(0,-wm.h/2);ctx.restore()});
   const x0=s.L+wm.h+W*.05,cw=s.R-x0;const kS=W*.04*S.layout.lScale*K.kicker;let y=s.T;
@@ -446,14 +446,14 @@ edge(ctx,W,H,s,S,K){
   const bd=bigDate(ctx,W,s,S,D,K);const infoArr=[...D.topLeft,...D.topRight];const infoTop=s.B-(bd?bd.h+iS*2:0)-infoArr.length*lh-iS*2;
   ops.push(()=>{lines(ctx,infoArr,x0,infoTop+iS,lh,iO);if(bd)bd.draw();txt(ctx,D.handle,x0,s.B,iO)});
   const names=D.lineup;let lS=W*.07*S.layout.lScale*K.lineup;const longest=Math.max(1,...names.map(n=>tw(ctx,n,fl,100)/100));lS=Math.min(lS,cw/longest);
-  const avail=infoTop-y-iS;if(names.length*lS*1.08>avail)lS=Math.max(W*.024*K.lineup,avail/(names.length*1.08));
-  const ly=y+(avail-names.length*lS*1.08)/2;const lc=S.layout.lineupColor==='accent'?P.accent:P.ink;
-  ops.push(()=>names.forEach((n,i)=>txt(ctx,n,x0,ly+(i+.8)*lS*1.08,{f:fl,size:lS,fill:lc})));
+  const avail=infoTop-y-iS;if(names.length*lS*1.08*LDG()>avail)lS=Math.max(W*.024*K.lineup,avail/(names.length*1.08));
+  const ly=y+(avail-names.length*lS*1.08*LDG())/2;const lc=S.layout.lineupColor==='accent'?P.accent:P.ink;
+  ops.push(()=>names.forEach((n,i)=>txt(ctx,n,x0,ly+(i+.8)*lS*1.08*LDG(),{f:fl,size:lS,fill:lc})));
   return{artBox:{x:x0,y:s.T,w:cw,h:s.B-s.T},draw:()=>ops.forEach(f=>f()),nameDraw:()=>nops.forEach(f=>f())};
 },
 scatter(ctx,W,H,s,S,K){
   const P=S.colour,D=derive(S),fi=F_(S.type.info),fl=F_(S.type.lineup),tr=S.type.tracking,R=rng(S.seeds.layout,'scatter');
-  const iS=W*.0165*S.layout.iScale*K.info,lh=iS*1.4,ops=[],nops=[],iO={f:fi,size:iS,tracking:tr,fill:P.ink};
+  const iS=W*.0165*S.layout.iScale*K.info,lh=iS*1.4*LDG(),ops=[],nops=[],iO={f:fi,size:iS,tracking:tr,fill:P.ink};
   ops.push(()=>{lines(ctx,D.topLeft,s.L,s.T+iS,lh,iO);lines(ctx,D.topRight,s.R,s.T+iS,lh,{...iO,align:'right'});txt(ctx,D.handle,W/2,s.B,{...iO,align:'center'})});
   const bd=bigDate(ctx,W,s,S,D,K);if(bd)ops.push(bd.draw);
   const midTop=s.T+Math.max(D.topLeft.length,D.topRight.length,1)*lh+iS*2,midBot=s.B-(bd?bd.h:iS*3);
@@ -493,7 +493,7 @@ rails(ctx,W,H,s,S,K){
 },
 inset(ctx,W,H,s,S,K){
   const P=S.colour,D=derive(S),fi=F_(S.type.info),fl=F_(S.type.lineup),tr=S.type.tracking;
-  const iS=W*.0165*S.layout.iScale*K.info,lh=iS*1.4,ops=[],nops=[],iO={f:fi,size:iS,tracking:tr,fill:P.ink},cw=s.R-s.L,ch=s.B-s.T;
+  const iS=W*.0165*S.layout.iScale*K.info,lh=iS*1.4*LDG(),ops=[],nops=[],iO={f:fi,size:iS,tracking:tr,fill:P.ink},cw=s.R-s.L,ch=s.B-s.T;
   const box={x:s.L+cw*.1,y:s.T+ch*.19,w:cw*.8,h:ch*.5};
   const wm=wordmark(ctx,D.title,cw*S.layout.wScale,ch*.28,S),wTop=Math.max(s.T+iS*2,box.y-wm.h*.55);nops.push(()=>wm.draw(W/2,wTop));
   const kS=W*.028*S.layout.lScale*K.kicker;if(D.kicker)ops.push(()=>txt(ctx,D.kicker,s.L,s.T+kS,{f:fl,size:kS,fill:P.ink}));
@@ -502,21 +502,21 @@ inset(ctx,W,H,s,S,K){
   const infoTop=s.B-infoArr.length*lh;ops.push(()=>{lines(ctx,infoArr,s.L,infoTop+iS*.9,lh,iO);if(bd)bd.draw();else txt(ctx,D.handle,s.R,s.B,{...iO,align:'right'})});
   const names=D.lineup,cols=names.length>3?2:1,per=Math.ceil(names.length/cols),colW=(cw-(bd?cw*.28:0))/cols;
   let lS=W*.034*S.layout.lScale*K.lineup;const longest=Math.max(1,...names.map(n=>tw(ctx,n,fl,100)/100));lS=Math.min(lS,colW*.92/longest);
-  const ly0=box.y+box.h+lS*1.6,avail=infoTop-iS*1.5-ly0;if(per*lS*1.15>avail)lS=Math.max(W*.022*K.lineup,avail/(per*1.15));const lc=S.layout.lineupColor==='accent'?P.accent:P.ink;
-  ops.push(()=>names.forEach((n,i)=>txt(ctx,n,s.L+Math.floor(i/per)*colW,ly0+(i%per)*lS*1.15,{f:fl,size:lS,fill:lc})));
+  const ly0=box.y+box.h+lS*1.6,avail=infoTop-iS*1.5-ly0;if(per*lS*1.15*LDG()>avail)lS=Math.max(W*.022*K.lineup,avail/(per*1.15));const lc=S.layout.lineupColor==='accent'?P.accent:P.ink;
+  ops.push(()=>names.forEach((n,i)=>txt(ctx,n,s.L+Math.floor(i/per)*colW,ly0+(i%per)*lS*1.15*LDG(),{f:fl,size:lS,fill:lc})));
   return{artBox:box,forceBox:true,draw:()=>ops.forEach(f=>f()),nameDraw:()=>nops.forEach(f=>f())};
 },
 split(ctx,W,H,s,S,K){
   const P=S.colour,D=derive(S),fi=F_(S.type.info),fl=F_(S.type.lineup),tr=S.type.tracking;
-  const iS=W*.0165*S.layout.iScale*K.info,lh=iS*1.45,ops=[],nops=[],iO={f:fi,size:iS,tracking:tr,fill:P.ink};
+  const iS=W*.0165*S.layout.iScale*K.info,lh=iS*1.45*LDG(),ops=[],nops=[],iO={f:fi,size:iS,tracking:tr,fill:P.ink};
   const half=Math.round(W*.5),box={x:half,y:0,w:W-half,h:H},x0=s.L,x1=half-s.L*.7;
   const wm=wordmark(ctx,D.title,s.B-s.T,(x1-x0)*.3*S.layout.wScale,S);
   nops.push(()=>{ctx.save();ctx.translate(x0+wm.h/2,(s.T+s.B)/2);ctx.rotate(-Math.PI/2);wm.draw(0,-wm.h/2);ctx.restore()});
   const info=[D.kicker,...D.extras,D.eventType,D.when,D.venue,D.address,D.handle].filter(Boolean);
   const infoW=info.length*lh,names=D.lineup,lc=S.layout.lineupColor==='accent'?P.accent:P.ink;
   const cx0=x0+wm.h+W*.02,availW=x1-infoW-iS*2-cx0;let lS=W*.036*S.layout.lScale*K.lineup;
-  if(names.length*lS*1.15>availW)lS=Math.max(W*.022*K.lineup,availW/(names.length*1.15));const longest=Math.max(1,...names.map(n=>tw(ctx,n,fl,100)/100));lS=Math.min(lS,(s.B-s.T)*.9/longest);
-  ops.push(()=>{names.forEach((n,i)=>vtxt(ctx,n,cx0+(i+.85)*lS*1.15,s.B,{f:fl,size:lS,fill:lc},'up'));info.forEach((t,i)=>vtxt(ctx,t,x1-i*lh,s.T,{...iO,align:'right',fill:i<1+D.extras.length&&D.kicker?P.accent:P.ink},'up'))});
+  if(names.length*lS*1.15*LDG()>availW)lS=Math.max(W*.022*K.lineup,availW/(names.length*1.15));const longest=Math.max(1,...names.map(n=>tw(ctx,n,fl,100)/100));lS=Math.min(lS,(s.B-s.T)*.9/longest);
+  ops.push(()=>{names.forEach((n,i)=>vtxt(ctx,n,cx0+(i+.85)*lS*1.15*LDG(),s.B,{f:fl,size:lS,fill:lc},'up'));info.forEach((t,i)=>vtxt(ctx,t,x1-i*lh,s.T,{...iO,align:'right',fill:i<1+D.extras.length&&D.kicker?P.accent:P.ink},'up'))});
   return{artBox:box,forceBox:true,draw:()=>ops.forEach(f=>f()),nameDraw:()=>nops.forEach(f=>f())};
 },
 paragraph(ctx,W,H,s,S,K){
@@ -525,11 +525,11 @@ paragraph(ctx,W,H,s,S,K){
   const kS=W*.034*S.layout.lScale*K.kicker;const wm=wordmark(ctx,D.title,cw*.86*S.layout.wScale,(s.B-s.T)*.18,S);
   let lS=W*.033*S.layout.lScale*K.lineup;const tokens=D.lineup.map((n,i)=>(i?'+ ':'+')+n);let ls=wrapTokens(ctx,tokens,'  ',cw,fl,lS);
   while(ls.length>9&&lS>W*.022*K.lineup){lS*=.9;ls=wrapTokens(ctx,tokens,'  ',cw,fl,lS)}
-  const blockH=(D.kicker?kS*1.3:0)+wm.h+kS*.5+ls.length*lS*1.2+(D.extras.length?D.extras.length*kS:0);
+  const blockH=(D.kicker?kS*1.3:0)+wm.h+kS*.5+ls.length*lS*1.2*LDG()+(D.extras.length?D.extras.length*kS:0);
   let y=s.T+Math.max(iS*3,((s.B-s.T)-blockH)*.42);const top=y;
   if(D.kicker){const yy=y+kS;ops.push(()=>txt(ctx,D.kicker,x0,yy,{f:fl,size:kS,fill:P.ink}));y+=kS*1.3}
   const wy=y;nops.push(()=>wm.draw(x0+wm.w/2,wy));y+=wm.h+kS*.5;
-  const ly=y;const lc=S.layout.lineupColor==='accent'?P.accent:P.ink;ops.push(()=>lines(ctx,ls,x0,ly+lS,lS*1.2,{f:fl,size:lS,fill:lc}));y+=ls.length*lS*1.2;
+  const ly=y;const lc=S.layout.lineupColor==='accent'?P.accent:P.ink;ops.push(()=>lines(ctx,ls,x0,ly+lS,lS*1.2*LDG(),{f:fl,size:lS,fill:lc}));y+=ls.length*lS*1.2*LDG();
   if(D.extras.length){const yy=y;ops.push(()=>lines(ctx,D.extras,x0,yy+kS*.9,kS,{f:fl,size:kS*.8,fill:P.accent}))}
   const rail=[D.eventType,D.when,D.venue,D.address].filter(Boolean).join('  /  ');
   ops.push(()=>{const len=tw(ctx,rail,fi,iS,tr),avail=s.B-s.T,sz=len>avail?iS*avail/len:iS;vtxt(ctx,rail,s.L+sz*.9,s.B,{...iO,size:sz},'up');txt(ctx,D.handle,x0,s.B,iO)});
@@ -550,8 +550,8 @@ boxed(ctx,W,H,s,S,K){
     txt(ctx,[D.eventType,D.handle].filter(Boolean).join('   ·   '),W/2,s.B,{f:fi,size:hS,fill:P.ink,align:'center',tracking:tr})});
   const names=D.lineup,top=y+pad*1.4,avail=bb.y-pad*1.4-top,lineW=cw*.86;let lS=Math.min(W*.06*S.layout.lScale*K.lineup,avail/Math.max(1,names.length)/1.25);
   const widest=Math.max(1,...names.map(n=>tw(ctx,n.replace(/\s+/g,'   '),fl,100)/100));lS=Math.min(lS,lineW/widest);
-  const blockH=names.length*lS*1.25,ly=top+(avail-blockH)/2,lc=S.layout.lineupColor==='accent'?P.accent:P.ink;
-  ops.push(()=>names.forEach((n,i)=>{const yy=ly+(i+.8)*lS*1.25,ws=n.split(/\s+/);if(ws.length>1)spreadWords(ctx,ws,W/2-lineW/2,W/2+lineW/2,yy,{f:fl,size:lS,fill:lc});else txt(ctx,n,W/2,yy,{f:fl,size:lS,fill:lc,align:'center'})}));
+  const blockH=names.length*lS*1.25*LDG(),ly=top+(avail-blockH)/2,lc=S.layout.lineupColor==='accent'?P.accent:P.ink;
+  ops.push(()=>names.forEach((n,i)=>{const yy=ly+(i+.8)*lS*1.25*LDG(),ws=n.split(/\s+/);if(ws.length>1)spreadWords(ctx,ws,W/2-lineW/2,W/2+lineW/2,yy,{f:fl,size:lS,fill:lc});else txt(ctx,n,W/2,yy,{f:fl,size:lS,fill:lc,align:'center'})}));
   if(D.extras.length)ops.push(()=>lines(ctx,D.extras,s.R-pad,tb.y+tb.h+kS*1.1,kS,{f:fl,size:kS*.85,fill:P.accent,align:'right'}));
   return{artBox:{x:s.L,y:top,w:cw,h:avail},draw:()=>ops.forEach(f=>f()),nameDraw:()=>nops.forEach(f=>f())};
 },
@@ -563,7 +563,7 @@ collage(ctx,W,H,s,S,K){
   const wm=wordmark(ctx,D.title,cw*.72*S.layout.wScale,(s.B-s.T)*.15,S),wy=y;nops.push(()=>wm.draw(s.L+wm.w/2,wy));y+=wm.h;
   const raw=[D.eventType,D.when,[D.venue,D.address].filter(Boolean).join(', '),...D.extras,(D.lineup.length?'lineup: '+D.lineup.join(', '):''),D.handle].filter(Boolean).map(t=>t.toUpperCase());
   const blockW=cw*.62;let bl=[];for(const t of raw)bl.push(...wrapTokens(ctx,t.split(' '),' ',blockW,fi,iS,.04));
-  const blh=iS*1.12,bTop=s.B-bl.length*blh;ops.push(()=>lines(ctx,bl,s.L,bTop+iS*.85,blh,{f:fi,size:iS,fill:P.ink,tracking:.04}));
+  const blh=iS*1.12*LDG(),bTop=s.B-bl.length*blh;ops.push(()=>lines(ctx,bl,s.L,bTop+iS*.85,blh,{f:fi,size:iS,fill:P.ink,tracking:.04}));
   const n=2+Math.floor(R()*3),frames=[];for(let i=0;i<n;i++){const fw=W*(.2+R()*.2),fh=fw*(.65+R()*.75);frames.push({x:R()*(W-fw),y:y+R()*Math.max(1,bTop-y-fh),w:fw,h:fh,mode:pick(R,['pixel','blur','zoom']),sx:R(),sy:R(),z:.35+R()*.4})}
   const postArt=()=>{const src=document.createElement('canvas');src.width=W;src.height=H;src.getContext('2d').drawImage(ctx.canvas,0,0);
     for(const f of frames){const sw=Math.min(W,f.w/f.z),sh=Math.min(H,f.h/f.z),sx=f.sx*(W-sw),sy=f.sy*(H-sh),t=document.createElement('canvas'),k=f.mode==='pixel'?u*16:f.mode==='blur'?u*9:1;
@@ -573,7 +573,7 @@ collage(ctx,W,H,s,S,K){
 },
 terminal(ctx,W,H,s,S,K){// Y2K terminal screen, after late-90s club flyers: window frame, labels, prompt lines and a block cursor
   const P=S.colour,D=derive(S),fi=F_(S.type.info),fl=F_(S.type.lineup),tr=S.type.tracking,u=W/1000;
-  const iS=W*.0165*S.layout.iScale*K.info,lh=iS*1.45,ops=[],nops=[],iO={f:fi,size:iS,tracking:tr,fill:P.ink},lw=Math.max(2,u*2.4),cw=s.R-s.L,pad=iS*1.1;
+  const iS=W*.0165*S.layout.iScale*K.info,lh=iS*1.45*LDG(),ops=[],nops=[],iO={f:fi,size:iS,tracking:tr,fill:P.ink},lw=Math.max(2,u*2.4),cw=s.R-s.L,pad=iS*1.1;
   const barH=iS*2.6,labels=[D.venue,D.handle].filter(Boolean);
   ops.push(()=>{ctx.save();ctx.strokeStyle=P.ink;ctx.lineWidth=lw;ctx.strokeRect(s.L,s.T,cw,s.B-s.T);
     let x=s.L+pad*.6;labels.forEach((t,i)=>{const sz=iS*1.05,w=tw(ctx,t,fi,sz,tr)+iS*1.3;if(x+w>s.R-iS*6)return;if(i){txt(ctx,'&',x,s.T+barH*.5+sz*.38,{...iO,size:sz*1.2});x+=sz*1.3}ctx.strokeRect(x,s.T+iS*.55,w,barH-iS*1.1);txt(ctx,t,x+iS*.65,s.T+barH*.5+sz*.38,{...iO,size:sz});x+=w+iS*.6});
@@ -584,7 +584,7 @@ terminal(ctx,W,H,s,S,K){// Y2K terminal screen, after late-90s club flyers: wind
   // the prompt block at the bottom
   const info=[D.when,[D.venue,D.address].filter(Boolean).join(', '),...D.extras].filter(Boolean),names=D.lineup;
   let lS=W*.034*S.layout.lScale*K.lineup;const gt=tw(ctx,'> ',fl,100)/100,longest=Math.max(1,...names.map(n=>tw(ctx,n,fl,100)/100+gt));lS=Math.min(lS,(cw-pad*2)*.95/longest);
-  const blockH=()=>info.length*lh+iS*.9+names.length*lS*1.22+lh*1.2;
+  const blockH=()=>info.length*lh+iS*.9+names.length*lS*1.22*LDG()+lh*1.2;
   const minArt=(s.B-s.T)*.2;if(s.B-pad-blockH()-y-iS*1.4<minArt)lS=Math.max(W*.018*K.lineup,(s.B-pad-y-iS*1.4-minArt-info.length*lh-iS*.9-lh*1.2)/(names.length*1.22));
   const by=s.B-pad-blockH(),dS=iS*2.1,dateTxt=(()=>{const d=S.data.date||'';const m=/^(\d{4})-(\d{2})-(\d{2})$/.exec(d);return[m?`${m[3]}/${m[2]}/${m[1]}`:'',S.data.start||''].filter(Boolean).join(' ')})();
   const dW=dateTxt?dS*1.5:0,box={x:s.L+pad,y,w:cw-pad*2-dW,h:Math.max(iS*4,by-iS*1.4-y)};
@@ -592,13 +592,13 @@ terminal(ctx,W,H,s,S,K){// Y2K terminal screen, after late-90s club flyers: wind
     if(dateTxt){TXTROLE='date';vtxt(ctx,dateTxt,box.x+box.w+dS*1.05,box.y+box.h,{f:fl,size:dS*.9,fill:P.ink},'up');TXTROLE=null}});
   const lc=S.layout.lineupColor==='accent'?P.accent:P.ink;
   ops.push(()=>{let yy=by+iS;info.forEach(t=>{txt(ctx,'> '+t,s.L+pad,yy,iO);yy+=lh});yy+=iS*.9;
-    names.forEach(n=>{yy+=lS*1.22;txt(ctx,'> ',s.L+pad,yy-lS*.22,{f:fl,size:lS,fill:P.ink});txt(ctx,n,s.L+pad+gt*lS,yy-lS*.22,{f:fl,size:lS,fill:lc})});
+    names.forEach(n=>{yy+=lS*1.22*LDG();txt(ctx,'> ',s.L+pad,yy-lS*.22,{f:fl,size:lS,fill:P.ink});txt(ctx,n,s.L+pad+gt*lS,yy-lS*.22,{f:fl,size:lS,fill:lc})});
     yy+=lh;const cx=s.L+pad+tw(ctx,'> ',fi,iS*1.2);txt(ctx,'>',s.L+pad,yy,{...iO,size:iS*1.2});ctx.save();ctx.fillStyle=P.ink;ctx.fillRect(cx,yy-iS*1.05,iS*.7,iS*1.25);ctx.restore()});
   return{artBox:box,forceBox:true,mask:'rect',draw:()=>ops.forEach(f=>f()),nameDraw:()=>nops.forEach(f=>f())};
 },
 talon(ctx,W,H,s,S,K){// a typed admission coupon: centred typewriter lines, dashed rules and a tear-off stub
   const P=S.colour,D=derive(S),fi=F_(S.type.info),fl=F_(S.type.lineup),tr=S.type.tracking,u=W/1000,R=rng(S.seeds.layout,'talon');
-  const iS=W*.019*S.layout.iScale*K.info,lh=iS*1.5,ops=[],nops=[],iO={f:fi,size:iS,tracking:tr,fill:P.ink,align:'center'},cx=W/2,cw=s.R-s.L,lw=Math.max(2,u*2);
+  const iS=W*.019*S.layout.iScale*K.info,lh=iS*1.5*LDG(),ops=[],nops=[],iO={f:fi,size:iS,tracking:tr,fill:P.ink,align:'center'},cx=W/2,cw=s.R-s.L,lw=Math.max(2,u*2);
   const dash=(y,gap)=>{ctx.save();ctx.strokeStyle=P.ink;ctx.lineWidth=lw;ctx.setLineDash(gap||[iS*.7,iS*.5]);ctx.beginPath();ctx.moveTo(s.L,y);ctx.lineTo(s.R,y);ctx.stroke();ctx.restore()};
   const stubH=iS*5.5,stubY=s.B-stubH;let y=s.T;
   const hasArt=S.art.kind!=='none',art={x:s.L+cw*.25,y,w:cw*.5,h:hasArt?(s.B-s.T)*.19:0};if(hasArt)y+=art.h+iS*2;else y+=iS*1.5;
@@ -607,8 +607,8 @@ talon(ctx,W,H,s,S,K){// a typed admission coupon: centred typewriter lines, dash
   const r1=y;ops.push(()=>dash(r1));y+=iS*2.2;
   const info=[D.eventType,D.when,[D.venue,D.address].filter(Boolean).join(', ')].filter(Boolean),iy=y;ops.push(()=>lines(ctx,info,cx,iy,lh,iO));y+=info.length*lh+iS*.8;
   const names=D.lineup,ex=D.extras;let lS=W*.036*S.layout.lScale*K.lineup;const longest=Math.max(1,...names.map(n=>tw(ctx,n,fl,100)/100));lS=Math.min(lS,cw*.86/longest);
-  const room=stubY-iS*3-ex.length*lh-y;if(names.length*lS*1.25>room)lS=Math.max(W*.018*K.lineup,room/(names.length*1.25));
-  const ly=y,lc=S.layout.lineupColor==='accent'?P.accent:P.ink;ops.push(()=>names.forEach((n,i)=>txt(ctx,n,cx,ly+(i+.85)*lS*1.25,{f:fl,size:lS,fill:lc,align:'center'})));y+=names.length*lS*1.25+iS*.6;
+  const room=stubY-iS*3-ex.length*lh-y;if(names.length*lS*1.25*LDG()>room)lS=Math.max(W*.018*K.lineup,room/(names.length*1.25));
+  const ly=y,lc=S.layout.lineupColor==='accent'?P.accent:P.ink;ops.push(()=>names.forEach((n,i)=>txt(ctx,n,cx,ly+(i+.85)*lS*1.25*LDG(),{f:fl,size:lS,fill:lc,align:'center'})));y+=names.length*lS*1.25*LDG()+iS*.6;
   if(ex.length){const ey=y+iS;ops.push(()=>lines(ctx,ex,cx,ey,lh,iO))}
   const serial='№ '+String(Math.floor(R()*9000)+1000);
   ops.push(()=>{ctx.save();ctx.strokeStyle=P.ink;ctx.lineWidth=lw;const r=iS*.75;ctx.setLineDash([lw*.1,r*.9]);ctx.lineCap='round';ctx.lineWidth=r*.55;ctx.beginPath();ctx.moveTo(s.L+r,stubY);ctx.lineTo(s.R-r,stubY);ctx.stroke();ctx.setLineDash([]);ctx.lineWidth=lw;
@@ -618,7 +618,7 @@ talon(ctx,W,H,s,S,K){// a typed admission coupon: centred typewriter lines, dash
 },
 descent(ctx,W,H,s,S,K){// the lineup walks down the poster like a staircase; a stepped line traces the treads
   const P=S.colour,D=derive(S),fi=F_(S.type.info),fl=F_(S.type.lineup),tr=S.type.tracking,u=W/1000;
-  const iS=W*.0165*S.layout.iScale*K.info,lh=iS*1.4,ops=[],nops=[],iO={f:fi,size:iS,tracking:tr,fill:P.ink},cw=s.R-s.L;
+  const iS=W*.0165*S.layout.iScale*K.info,lh=iS*1.4*LDG(),ops=[],nops=[],iO={f:fi,size:iS,tracking:tr,fill:P.ink},cw=s.R-s.L;
   ops.push(()=>{lines(ctx,D.topLeft,s.L,s.T+iS,lh,iO);lines(ctx,D.topRight,s.R,s.T+iS,lh,{...iO,align:'right'})});
   let y=s.T+Math.max(D.topLeft.length,D.topRight.length,1)*lh+iS*1.6;const kS=W*.034*S.layout.lScale*K.kicker;
   if(D.kicker){const yy=y+kS;ops.push(()=>txt(ctx,D.kicker,s.L,yy,{f:fl,size:kS,fill:P.ink}));y+=kS*1.35}
@@ -634,7 +634,7 @@ descent(ctx,W,H,s,S,K){// the lineup walks down the poster like a staircase; a s
 },
 ticket(ctx,W,H,s,S,K){// an old club ticket: a ruled header table, the name huge and loose, the lineup spaced out
   const P=S.colour,D=derive(S),fi=F_(S.type.info),fl=F_(S.type.lineup),tr=S.type.tracking,u=W/1000,R=rng(S.seeds.layout,'ticket');
-  const iS=W*.0165*S.layout.iScale*K.info,lh=iS*1.4,ops=[],nops=[],iO={f:fi,size:iS,tracking:tr,fill:P.ink},cw=s.R-s.L,lw=Math.max(2,u*2.2);
+  const iS=W*.0165*S.layout.iScale*K.info,lh=iS*1.4*LDG(),ops=[],nops=[],iO={f:fi,size:iS,tracking:tr,fill:P.ink},cw=s.R-s.L,lw=Math.max(2,u*2.2);
   const d=S.data,m=/^(\d{4})-(\d{2})-(\d{2})$/.exec(d.date||''),cells=[['date',m?`${+m[3]}/${+m[2]}`:''],['start',d.start||''],['end',d.end||'late'],['venue',d.venue||'']].filter(c=>c[1]);
   const serial=String(10000+Math.floor(R()*89999)),hH=iS*4.2,cS=iS*1.7;
   ops.push(()=>{ctx.save();ctx.strokeStyle=P.accent;ctx.lineWidth=lw;const total=cells.length+1.2;let x=s.L;ctx.strokeRect(s.L,s.T,cw,hH);
@@ -646,36 +646,36 @@ ticket(ctx,W,H,s,S,K){// an old club ticket: a ruled header table, the name huge
   const wm=wordmark(ctx,D.title,cw*1.02*S.layout.wScale,(s.B-s.T)*.3,S),wy=y;nops.push(()=>{ctx.save();ctx.translate(W/2,wy+wm.h/2);ctx.rotate(-.06);wm.draw(0,-wm.h/2);ctx.restore()});y+=wm.h+iS*.8;
   const names=D.lineup.map(t=>t.toUpperCase()),bot=s.B-lh*2.4;let lS=W*.06*S.layout.lScale*K.lineup;const spread=.18;
   const longest=Math.max(1,...names.map(t=>tw(ctx,t,fl,100,spread)/100));lS=Math.min(lS,cw*.76/longest,(bot-y)/(Math.max(1,names.length)*1.1));
-  const ly=bot-names.length*lS*1.1,lc=S.layout.lineupColor==='accent'?P.accent:P.ink;
-  ops.push(()=>names.forEach((t,i)=>txt(ctx,t,s.L+cw*(.12+(i%3)*.04),ly+(i+.9)*lS*1.1,{f:fl,size:lS,fill:lc,tracking:spread})));
+  const ly=bot-names.length*lS*1.1*LDG(),lc=S.layout.lineupColor==='accent'?P.accent:P.ink;
+  ops.push(()=>names.forEach((t,i)=>txt(ctx,t,s.L+cw*(.12+(i%3)*.04),ly+(i+.9)*lS*1.1*LDG(),{f:fl,size:lS,fill:lc,tracking:spread})));
   ops.push(()=>{const ln=[D.eventType,[D.venue,D.address].filter(Boolean).join('  ')].filter(Boolean).join('   ');txt(ctx,ln,s.L,s.B,{...iO,fill:P.accent,size:iS*1.15})});
   return{artBox:{x:s.L,y:wy,w:cw,h:bot-wy},draw:()=>ops.forEach(f=>f()),nameDraw:()=>nops.forEach(f=>f())};
 },
 centre(ctx,W,H,s,S,K){// everything on the centre axis: a calm, symmetric poster
   const P=S.colour,D=derive(S),fi=F_(S.type.info),fl=F_(S.type.lineup),tr=S.type.tracking,cx=W/2,cw=s.R-s.L;
-  const iS=W*.0165*S.layout.iScale*K.info,lh=iS*1.45,ops=[],nops=[],iO={f:fi,size:iS,tracking:tr,fill:P.ink,align:'center'};
+  const iS=W*.0165*S.layout.iScale*K.info,lh=iS*1.45*LDG(),ops=[],nops=[],iO={f:fi,size:iS,tracking:tr,fill:P.ink,align:'center'};
   const top=[D.eventType].filter(Boolean);ops.push(()=>lines(ctx,top,cx,s.T+iS,lh,iO));/* the date sits with the address at the foot */
   let y=s.T+top.length*lh;/* name sits close under the top line */const kS=W*.036*S.layout.lScale*K.kicker;
   if(D.kicker){const yy=y+kS;ops.push(()=>txt(ctx,D.kicker,cx,yy,{f:fl,size:kS,fill:P.ink,align:'center'}));y+=kS*.95}/* name tucked up under the kicker */
   const wm=wordmark(ctx,D.title,cw*.9*S.layout.wScale,(s.B-s.T)*.2,S),wy=y;nops.push(()=>wm.draw(cx,wy));y+=wm.h+iS*2;
   const bot=[D.whenShort,[D.venue,D.address].filter(Boolean).join(', '),...D.extras,D.handle].filter(Boolean),botY=s.B-(bot.length-1)*lh;ops.push(()=>bot.forEach((t,i)=>lines(ctx,[t],cx,botY+i*lh,lh,t===D.whenShort?{...iO,fill:Math.abs(lum(P.accent2)-lum(P.bg))>Math.abs(lum(P.accent)-lum(P.bg))?P.accent2:P.accent}:iO)));/* the date in whichever accent reads better on the background */
   const names=D.lineup,n=Math.max(1,names.length);let lS=W*.05*S.layout.lScale*K.lineup;const longest=Math.max(1,...names.map(t=>tw(ctx,t,fl,100)/100));lS=Math.min(lS,cw*.8/longest);
-  const lineH=n*lS*1.18,artH=Math.max(0,botY-lh*1.6-lineH-iS*2-y),side=Math.min(artH,cw*.62),box={x:cx-side/2,y,w:side,h:side};
+  const lineH=n*lS*1.18*LDG(),artH=Math.max(0,botY-lh*1.6-lineH-iS*2-y),side=Math.min(artH,cw*.62),box={x:cx-side/2,y,w:side,h:side};
   const ly=y+(side>iS*4?side+iS*2:0),lc=S.layout.lineupColor==='accent'?P.accent:P.ink;
-  ops.push(()=>names.forEach((t,i)=>txt(ctx,t,cx,ly+(i+.85)*lS*1.18,{f:fl,size:lS,fill:lc,align:'center'})));
+  ops.push(()=>names.forEach((t,i)=>txt(ctx,t,cx,ly+(i+.85)*lS*1.18*LDG(),{f:fl,size:lS,fill:lc,align:'center'})));
   return{artBox:side>iS*4?box:null,draw:()=>ops.forEach(f=>f()),nameDraw:()=>nops.forEach(f=>f())};
 },
 apart(ctx,W,H,s,S,K){// name and lineup pushed to opposite corners, the middle left open
   const P=S.colour,D=derive(S),fi=F_(S.type.info),fl=F_(S.type.lineup),tr=S.type.tracking,cw=s.R-s.L;
-  const iS=W*.0165*S.layout.iScale*K.info,lh=iS*1.4,ops=[],nops=[],iO={f:fi,size:iS,tracking:tr,fill:P.ink};
+  const iS=W*.0165*S.layout.iScale*K.info,lh=iS*1.4*LDG(),ops=[],nops=[],iO={f:fi,size:iS,tracking:tr,fill:P.ink};
   let y=s.T;const kS=W*.032*S.layout.lScale*K.kicker;
   if(D.kicker){const yy=y+kS;ops.push(()=>txt(ctx,D.kicker,s.L,yy,{f:fl,size:kS,fill:P.ink}));y+=kS*1.35}
   const tr2=[D.eventType,D.when].filter(Boolean),infoW=Math.max(0,...tr2.map(t=>tw(ctx,t,fi,iS,tr)));
   const wm=wordmark(ctx,D.title,Math.min(cw*.7,cw-infoW-iS*3)*S.layout.wScale,(s.B-s.T)*.16,S),wy=y;nops.push(()=>wm.draw(s.L+wm.w/2,wy));
 ops.push(()=>lines(ctx,tr2,s.R,s.T+iS,lh,{...iO,align:'right'}));
   const names=D.lineup,n=Math.max(1,names.length);let lS=W*.046*S.layout.lScale*K.lineup;const longest=Math.max(1,...names.map(t=>tw(ctx,t,fl,100)/100));lS=Math.min(lS,cw*.62/longest,(s.B-s.T)*.34/(n*1.15));
-  const ly=s.B-n*lS*1.15,lc=S.layout.lineupColor==='accent'?P.accent:P.ink;
-  ops.push(()=>names.forEach((t,i)=>txt(ctx,t,s.R,ly+(i+.85)*lS*1.15,{f:fl,size:lS,fill:lc,align:'right'})));
+  const ly=s.B-n*lS*1.15*LDG(),lc=S.layout.lineupColor==='accent'?P.accent:P.ink;
+  ops.push(()=>names.forEach((t,i)=>txt(ctx,t,s.R,ly+(i+.85)*lS*1.15*LDG(),{f:fl,size:lS,fill:lc,align:'right'})));
   const bl=[D.venue,D.address,...D.extras,D.handle].filter(Boolean);ops.push(()=>lines(ctx,bl,s.L,s.B-(bl.length-1)*lh,lh,iO));
   const mid=wy+wm.h+iS*3,gap=Math.max(iS*4,ly-iS*3-mid);return{artBox:{x:s.L+cw*.3,y:mid+gap*.2,w:cw*.4,h:gap*.6},draw:()=>ops.forEach(f=>f()),nameDraw:()=>nops.forEach(f=>f())};
 },
@@ -688,22 +688,22 @@ orbit(ctx,W,H,s,S,K){// text runs around the edges like a frame; the centre belo
   const edgeTop=top,edgeBot=s.B-bS*2.2,len=edgeBot-edgeTop;
   // lineup down the right edge, one line per column
   const names=D.lineup,n=Math.max(1,names.length);let lS=W*.034*S.layout.lScale*K.lineup;const longest=Math.max(1,...names.map(t=>tw(ctx,t,fl,100)/100));lS=Math.min(lS,len*.96/longest,cw*.3/(n*1.2));
-  const lc=S.layout.lineupColor==='accent'?P.accent:P.ink;ops.push(()=>names.forEach((t,i)=>vtxt(ctx,t,s.R-i*lS*1.2-lS*.2,edgeTop,{f:fl,size:lS,fill:lc},'down')));
+  const lc=S.layout.lineupColor==='accent'?P.accent:P.ink;ops.push(()=>names.forEach((t,i)=>vtxt(ctx,t,s.R-i*lS*1.2*LDG()-lS*.2,edgeTop,{f:fl,size:lS,fill:lc},'down')));
   // date and event up the left edge
   const left=[D.eventType,D.when,...D.extras].filter(Boolean),lS2=Math.min(iS*1.5,len*.96/Math.max(1,...left.map(t=>tw(ctx,t,fi,100,tr)/100)));
   ops.push(()=>left.forEach((t,i)=>vtxt(ctx,t,s.L+lS2*(i+.85)*1.25,edgeBot,{...iO,size:lS2},'up')));
-  const lw=left.length*lS2*1.25+iS*1.2,rw=n*lS*1.2+iS*1.2;
+  const lw=left.length*lS2*1.25+iS*1.2,rw=n*lS*1.2*LDG()+iS*1.2;
   return{artBox:{x:s.L+lw,y:edgeTop+iS*1.2,w:Math.max(iS*4,cw-lw-rw),h:len-iS*1.2},draw:()=>ops.forEach(f=>f()),nameDraw:()=>nops.forEach(f=>f())};
 },
 masthead(ctx,W,H,s,S,K){// like a zine cover: the name across the top, a ruled info row, the image, the lineup and an evenly spaced handle on the bottom edge
   const P=S.colour,D=derive(S),fi=F_(S.type.info),fl=F_(S.type.lineup),tr=S.type.tracking,cw=s.R-s.L;
-  const iS=W*.0165*S.layout.iScale*K.info,lh=iS*1.45,ops=[],nops=[],iO={f:fi,size:iS,tracking:tr,fill:P.ink};
+  const iS=W*.0165*S.layout.iScale*K.info,lh=iS*1.45*LDG(),ops=[],nops=[],iO={f:fi,size:iS,tracking:tr,fill:P.ink};
   const wm=wordmark(ctx,D.title,cw*S.layout.wScale,(s.B-s.T)*.2,S);nops.push(()=>wm.draw(W/2,s.T));
   const ry=s.T+wm.h+iS*1.8,dm=/^(\d{4})-(\d{2})-(\d{2})$/.exec(S.data.date||'');
   ops.push(()=>{txt(ctx,D.eventType||D.kicker,s.L,ry,iO);txt(ctx,D.venue,W/2,ry,{...iO,align:'center'});TXTROLE='date';txt(ctx,dm?`${dm[3]}.${dm[2]}.${dm[1]}`:'',s.R,ry,{...iO,align:'right'});TXTROLE=null});
   let y=ry+iS*1.6;if(D.kicker&&D.eventType){const yy=y+iS;ops.push(()=>txt(ctx,D.kicker,s.L,yy,iO));y+=lh}
   const names=D.lineup,n=Math.max(1,names.length),hS=iS*1.1,botTxt=s.B-hS*2.2;let lS=W*.034*S.layout.lScale*K.lineup;const longest=Math.max(1,...names.map(t=>tw(ctx,t,fl,100)/100));lS=Math.min(lS,cw*.58/longest);
-  const ly=botTxt-n*lS*1.2,lc=S.layout.lineupColor==='accent'?P.accent:P.ink;ops.push(()=>names.forEach((t,i)=>txt(ctx,t,s.L,ly+(i+.85)*lS*1.2,{f:fl,size:lS,fill:lc})));
+  const ly=botTxt-n*lS*1.2*LDG(),lc=S.layout.lineupColor==='accent'?P.accent:P.ink;ops.push(()=>names.forEach((t,i)=>txt(ctx,t,s.L,ly+(i+.85)*lS*1.2*LDG(),{f:fl,size:lS,fill:lc})));
   const right=[D.when,D.address,...D.extras].filter(Boolean);ops.push(()=>lines(ctx,right,s.R,botTxt-(right.length-1)*lh-iS*.6,lh,{...iO,align:'right'}));
   const h=Array.from(D.handle||'');ops.push(()=>{if(h.length<2){txt(ctx,D.handle,W/2,s.B,{...iO,size:hS,align:'center'});return}const step=cw/(h.length-1);h.forEach((ch,i)=>txt(ctx,ch,s.L+i*step,s.B,{...iO,size:hS,align:i===0?'left':i===h.length-1?'right':'center'}))});
   return{artBox:{x:s.L,y:y+iS,w:cw,h:Math.max(iS*4,ly-iS*2.5-y)},draw:()=>ops.forEach(f=>f()),nameDraw:()=>nops.forEach(f=>f())};
@@ -728,8 +728,8 @@ bottomline(ctx,W,H,s,S,K){// the image owns the top; date and time above a huge 
   ops.push(()=>{txt(ctx,D.kicker||D.eventType,s.L,s.T+iS,iO);txt(ctx,D.handle,s.R,s.T+iS,{...iO,align:'right'})});
   const names=D.lineup,sep='  •  ';let lS=W*.04*S.layout.lScale*K.lineup;const rows=()=>{const R=[[]];let w=0;for(const n of names){const nw=tw(ctx,n,fl,lS),sw=tw(ctx,sep,fl,lS);if(R[R.length-1].length&&w+sw+nw>cw){R.push([]);w=0}w+=(R[R.length-1].length?sw:0)+nw;R[R.length-1].push(n)}return R};
   let R=rows();while(R.length>3&&lS>W*.022){lS*=.92;R=rows()}
-  const venue=[D.venue,D.address].filter(Boolean).join(', '),vy=s.B,ly0=vy-iS*1.8-R.length*lS*1.15,lc=S.layout.lineupColor==='accent'?P.accent:P.ink;
-  ops.push(()=>{R.forEach((r,i)=>{const line=r.join(sep);txt(ctx,line,W/2,ly0+(i+.85)*lS*1.15,{f:fl,size:lS,fill:lc,align:'center'})});txt(ctx,venue,W/2,vy,{...iO,align:'center'})});
+  const venue=[D.venue,D.address].filter(Boolean).join(', '),vy=s.B,ly0=vy-iS*1.8-R.length*lS*1.15*LDG(),lc=S.layout.lineupColor==='accent'?P.accent:P.ink;
+  ops.push(()=>{R.forEach((r,i)=>{const line=r.join(sep);txt(ctx,line,W/2,ly0+(i+.85)*lS*1.15*LDG(),{f:fl,size:lS,fill:lc,align:'center'})});txt(ctx,venue,W/2,vy,{...iO,align:'center'})});
   const wm=wordmark(ctx,D.title,cw*S.layout.wScale,(s.B-s.T)*.17,S),wy=ly0-iS*.8-wm.h;nops.push(()=>wm.draw(W/2,wy));
   const dS=iS*1.5,dy=wy-iS*1.1,dm=/^(\d{4})-(\d{2})-(\d{2})$/.exec(S.data.date||''),time=[S.data.start,S.data.end].filter(Boolean).join(' – ');
   ops.push(()=>{TXTROLE='date';txt(ctx,dm?`${dm[3]}.${dm[2]}`:'',s.L+cw*.06,dy,{f:fl,size:dS,fill:P.ink});TXTROLE=null;txt(ctx,time,s.R-cw*.06,dy,{f:fl,size:dS,fill:P.ink,align:'right'})});
@@ -754,7 +754,7 @@ band(ctx,W,H,s,S,K){// a solid colour band holds the bottom third: lineup on the
   const fy=Math.min(s.B-(rows-1)*lh-fS*.4,H-oh*.5-iS*.8-(rows-1)*lh/2),ccy=fy+(rows-1)*lh-(cols[0].length-1)*lh/2-fS*.32,ccx=s.L+dw/2,cr=oh/2;
   const names=D.lineup;let lS=W*.034*S.layout.lScale*K.lineup;const longest=Math.max(1,...names.map(t=>tw(ctx,t,fl,100)/100));
   lS=Math.min(lS,cw*.62/longest,(ccy-cr-iS*.6-bandTop-iS*1.3)/(Math.max(1,names.length)*1.15));
-  ops.push(()=>{names.forEach((t,i)=>txt(ctx,t,s.R-((names.length-1-i)%3)*cw*.05,bandTop+iS*1.3+(i+.85)*lS*1.15,{f:fl,size:lS,fill:on,align:'right'}));
+  ops.push(()=>{names.forEach((t,i)=>txt(ctx,t,s.R-((names.length-1-i)%3)*cw*.05,bandTop+iS*1.3+(i+.85)*lS*1.15*LDG(),{f:fl,size:lS,fill:on,align:'right'}));
     const okO=INK_OVALS.map((_,i)=>i).filter(i=>![1,5,12].includes(i)),oi=S.layout.oval==null||S.layout.oval<0?okO[Math.floor(R()*okO.length)]:okO[S.layout.oval%okO.length],ov=inkOval(oi,on)||procOval(ow,oh,on,(S.seeds.layout||1)+(S.layout.oval||0)*7919);
     if(ov){// draw the brush loop on its own layer and clear a soft hole where the text goes, so the ink never sits under the letters
       const L=document.createElement('canvas');L.width=Math.ceil(ow);L.height=Math.ceil(oh);const g=L.getContext('2d');g.drawImage(ov,0,0,ow,oh);g.globalCompositeOperation='destination-out';
@@ -770,7 +770,7 @@ band(ctx,W,H,s,S,K){// a solid colour band holds the bottom third: lineup on the
 },
 stub(ctx,W,H,s,S,K){
   const P=S.colour,D=derive(S),fi=F_(S.type.info),fl=F_(S.type.lineup),tr=S.type.tracking;
-  const iS=W*.0165*S.layout.iScale*K.info,lh=iS*1.4,ops=[],nops=[],iO={f:fi,size:iS,tracking:tr,fill:P.ink},u=W/1000;
+  const iS=W*.0165*S.layout.iScale*K.info,lh=iS*1.4*LDG(),ops=[],nops=[],iO={f:fi,size:iS,tracking:tr,fill:P.ink},u=W/1000;
   const bandH=H*.12,bandTop=Math.min(H-bandH,s.B-bandH*.3),tooth=W*.014;
   ops.push(()=>{ctx.save();ctx.globalAlpha=.78;ctx.fillStyle=P.accent2;ctx.fillRect(0,bandTop,W,H-bandTop);ctx.restore();// a straight, slightly see-through band
 
@@ -784,9 +784,9 @@ stub(ctx,W,H,s,S,K){
   if(D.big){const bs=Math.min(W*.13*K.big,cw*.8/(tw(ctx,`${D.big.day}.${D.big.mm}`,f,100)/100)),yy=y+bs*.82;ops.push(()=>txt(ctx,`${D.big.day}.${D.big.mm}`,s.L,yy,{f,size:bs,fill:P.accent}));y+=bs*.95}
   const info=[D.when,[D.venue,D.address].filter(Boolean).join(', '),...D.extras].filter(Boolean),infoH=info.length*lh;
   const names=D.lineup;let lS=W*.034*S.layout.lScale*K.lineup;const longest=Math.max(1,...names.map(n=>tw(ctx,n,fl,100)/100));lS=Math.min(lS,cw*.95/longest);
-  const avail=bandTop-tooth*2-iS*1.5-infoH-y;if(names.length*lS*1.12>avail)lS=Math.max(W*.022*K.lineup,avail/(names.length*1.12));
-  const ly=y,lc=S.layout.lineupColor==='accent'?P.accent:P.ink;ops.push(()=>names.forEach((n,i)=>txt(ctx,n,s.L,ly+(i+.85)*lS*1.12,{f:fl,size:lS,fill:lc})));
-  const iy=ly+names.length*lS*1.12+iS*1.4;ops.push(()=>lines(ctx,info,s.L,iy+iS,lh,iO));
+  const avail=bandTop-tooth*2-iS*1.5-infoH-y;if(names.length*lS*1.12*LDG()>avail)lS=Math.max(W*.022*K.lineup,avail/(names.length*1.12));
+  const ly=y,lc=S.layout.lineupColor==='accent'?P.accent:P.ink;ops.push(()=>names.forEach((n,i)=>txt(ctx,n,s.L,ly+(i+.85)*lS*1.12*LDG(),{f:fl,size:lS,fill:lc})));
+  const iy=ly+names.length*lS*1.12*LDG()+iS*1.4;ops.push(()=>lines(ctx,info,s.L,iy+iS,lh,iO));
   return{artBox:box,draw:()=>ops.forEach(f=>f()),nameDraw:()=>nops.forEach(f=>f())};
 }
 
@@ -1326,6 +1326,7 @@ function buildUI(){
   cSelect(b,'lineup font','type.lineup',fontOptions);
   cSelect(b,'info font','type.info',fontOptions);
   cRange(b,'info spacing','type.tracking',0,.4,.01);
+  cRange(b,'line spacing','type.leading',.7,1.8,.01,v=>Math.round(v*100)+'%');
   const pc=v=>Math.round(v*100)+'%';cRange(b,'name size','layout.wScale',.4,1.3,.01,pc);cRange(b,'lineup size','layout.lScale',.4,1.6,.01,pc);cRange(b,'info size','layout.iScale',.85,2,.01,pc);cRange(b,'name opacity','type.op.name',.1,1,.01,pc);cRange(b,'lineup opacity','type.op.lineup',.1,1,.01,pc);cRange(b,'info opacity','type.op.info',.1,1,.01,pc);cRange(b,'date opacity','type.op.date',.1,1,.01,pc);
   cSeg(b,'shuffle uses','type.pool',[['all','all fonts'],['yours','my fonts'],['builtin','built-in']]);
   const fin=el('input',{type:'file',multiple:true,accept:'.otf,.ttf,.woff,.woff2,.zip'});fin.style.display='none';fin.onchange=()=>{handleFontFiles([...fin.files]);fin.value=''};
