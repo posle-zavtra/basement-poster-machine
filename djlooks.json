@@ -2704,6 +2704,660 @@
     }
    },
    "name": "look 33"
+  },
+  {
+   "at": "2026-11-24T21:26:53.315Z",
+   "id": "pzzgxhjpp",
+   "look": {
+    "art": {
+     "clean": false,
+     "duotone": false,
+     "kind": "flow",
+     "mask": "circle",
+     "opacity": 0.74,
+     "overlay": "none",
+     "photoFx": "redflash",
+     "px": 0,
+     "py": 0,
+     "scale": 0.84,
+     "stamp": "figure",
+     "stampAnchor": {
+      "ang": 0.005814850106835365,
+      "d": 0.8197911153839278,
+      "edge": "in",
+      "fx": 0.3910610625618425,
+      "idx": null,
+      "to": "name"
+     },
+     "stampColor": "#976053",
+     "stampFrame": "none",
+     "stampInk": "custom",
+     "stampPos": 0,
+     "stampSeed": 712977999,
+     "stampSize": 0.35,
+     "stampStyle": "auto"
+    },
+    "colour": {
+     "accent": "#42ad56",
+     "accent2": "#a14a45",
+     "auto": true,
+     "bg": "#d8c8cd",
+     "ink": "#42ad56"
+    },
+    "fx": {
+     "bloom": 0,
+     "blur": 0.21,
+     "dither": 0,
+     "glowText": false,
+     "grain": 0.21,
+     "master": 1,
+     "paper": 0.36,
+     "rgb": 0,
+     "riso": 0.63,
+     "slit": 0,
+     "sort": 0,
+     "target": "name",
+     "wave": 0.28,
+     "xerox": 0
+    },
+    "layout": {
+     "extrasStyle": "text",
+     "frame": "none",
+     "iScale": 1,
+     "kind": "echo",
+     "lScale": 1,
+     "lineupColor": "ink",
+     "tilt": 0,
+     "wScale": 1
+    },
+    "seeds": {
+     "art": 3743062901,
+     "colour": 3229494963,
+     "fx": 1148723045,
+     "layout": 483497898,
+     "type": 63518389
+    },
+    "type": {
+     "info": "g:VT323",
+     "leading": 0.72,
+     "lineup": "g:Oswald",
+     "op": {
+      "date": 1,
+      "info": 1,
+      "lineup": 1,
+      "name": 1
+     },
+     "pool": "all",
+     "stretch": 1.78,
+     "tracking": 0.21,
+     "wStyle": "bubble",
+     "wordmark": "g:UnifrakturMaguntia"
+    },
+    "vibe": {
+     "chaos": 0.56,
+     "harsh": 0.28,
+     "night": 0.18
+    }
+   },
+   "name": "look 34"
+  },
+  {
+   "at": "2026-11-24T21:28:03.622Z",
+   "id": "pc8v82efr",
+   "look": {
+    "art": {
+     "duotone": false,
+     "kind": "type",
+     "mask": "full",
+     "opacity": 0.87,
+     "overlay": "none",
+     "photoFx": "lowpoly",
+     "px": 0,
+     "py": 0,
+     "scale": 1.39,
+     "stamp": "figure",
+     "stampAnchor": {
+      "ang": -0.05786731217056513,
+      "d": -0.1971656702344545,
+      "edge": "top",
+      "fx": 0.9078930159900349,
+      "idx": null,
+      "to": "lineup"
+     },
+     "stampColor": "#e64781",
+     "stampFrame": "auto",
+     "stampInk": "custom",
+     "stampPos": 0,
+     "stampSeed": 316696568,
+     "stampSize": 1,
+     "stampStyle": "auto"
+    },
+    "colour": {
+     "accent": "#e0507f",
+     "accent2": "#d7dcfb",
+     "auto": true,
+     "bg": "#c6f2ce",
+     "ink": "#4f9e3a"
+    },
+    "fx": {
+     "bloom": 0,
+     "blur": 0.29,
+     "dither": 0,
+     "glowText": false,
+     "grain": 0.29,
+     "master": 1,
+     "paper": 0.57,
+     "rgb": 0,
+     "riso": 0.89,
+     "slit": 0,
+     "sort": 0,
+     "target": "name",
+     "wave": 0.26,
+     "xerox": 0.77
+    },
+    "layout": {
+     "extrasStyle": "text",
+     "frame": "none",
+     "iScale": 1,
+     "kind": "collage",
+     "lScale": 1,
+     "lineupColor": "ink",
+     "tilt": 3,
+     "wScale": 1
+    },
+    "seeds": {
+     "art": 3431150288,
+     "colour": 293256150,
+     "fx": 2003318731,
+     "layout": 4199607700,
+     "type": 451456822
+    },
+    "type": {
+     "info": "b:Geist:400",
+     "leading": 1.13,
+     "lineup": "g:VT323",
+     "op": {
+      "date": 1,
+      "info": 1,
+      "lineup": 1,
+      "name": 1
+     },
+     "pool": "all",
+     "stretch": 1,
+     "tracking": 0.22,
+     "wStyle": "shadow",
+     "wordmark": "g:Bebas Neue"
+    },
+    "vibe": {
+     "chaos": 0.56,
+     "harsh": 0.28,
+     "night": 0.18
+    }
+   },
+   "name": "look 35"
+  },
+  {
+   "at": "2026-11-24T21:29:05.155Z",
+   "id": "pgh3g4qpq",
+   "look": {
+    "art": {
+     "duotone": false,
+     "kind": "blobs",
+     "mask": "circle",
+     "opacity": 0.96,
+     "overlay": "none",
+     "photoFx": "flash",
+     "px": 0,
+     "py": 0,
+     "scale": 1.07,
+     "stamp": "spiral",
+     "stampAnchor": {
+      "ang": 0.07034922372549772,
+      "d": -0.3320415710741374,
+      "edge": "top",
+      "fx": 0.19281912589096542,
+      "idx": null,
+      "to": "lineup"
+     },
+     "stampColor": "#e9dccb",
+     "stampFrame": "none",
+     "stampInk": "custom",
+     "stampPos": 0,
+     "stampSeed": 27478432,
+     "stampSize": 1,
+     "stampStyle": "auto"
+    },
+    "colour": {
+     "accent": "#3d7cb6",
+     "accent2": "#55bb4e",
+     "auto": true,
+     "bg": "#d4cbc2",
+     "ink": "#3d7cb6"
+    },
+    "fx": {
+     "bloom": 0,
+     "blur": 0.26,
+     "dither": 0,
+     "glowText": false,
+     "grain": 0.35,
+     "master": 1,
+     "paper": 0.32,
+     "rgb": 0,
+     "riso": 0.81,
+     "slit": 0,
+     "sort": 0,
+     "target": "name",
+     "wave": 0.34,
+     "xerox": 0.21
+    },
+    "layout": {
+     "extrasStyle": "text",
+     "frame": "border",
+     "iScale": 1,
+     "kind": "bottomline",
+     "lScale": 1,
+     "lineupColor": "ink",
+     "tilt": 0,
+     "wScale": 1
+    },
+    "seeds": {
+     "art": 437957462,
+     "colour": 2788663217,
+     "fx": 3402571626,
+     "layout": 1770906955,
+     "type": 1718249132
+    },
+    "type": {
+     "info": "b:Geist:400",
+     "leading": 0.7,
+     "lineup": "g:VT323",
+     "op": {
+      "date": 1,
+      "info": 1,
+      "lineup": 1,
+      "name": 1
+     },
+     "pool": "all",
+     "stretch": 1,
+     "tracking": 0.12,
+     "wStyle": "outline",
+     "wordmark": "g:Rubik Puddles"
+    },
+    "vibe": {
+     "chaos": 0.56,
+     "harsh": 0.28,
+     "night": 0.18
+    }
+   },
+   "name": "look 36"
+  },
+  {
+   "at": "2026-11-24T21:31:11.977Z",
+   "id": "ps5kcax5s",
+   "look": {
+    "art": {
+     "duotone": false,
+     "kind": "houses",
+     "mask": "pill",
+     "opacity": 0.82,
+     "overlay": "none",
+     "photoFx": "halftone",
+     "px": 0,
+     "py": 0,
+     "scale": 0.87,
+     "stamp": "figure",
+     "stampAnchor": {
+      "ang": 0.03360467381775379,
+      "d": -0.19088500971280048,
+      "edge": "top",
+      "fx": 0.15147073520155302,
+      "idx": null,
+      "to": "lineup"
+     },
+     "stampColor": "#31806b",
+     "stampFrame": "auto",
+     "stampInk": "custom",
+     "stampPos": 0,
+     "stampSeed": 682986319,
+     "stampSize": 1,
+     "stampStyle": "auto"
+    },
+    "colour": {
+     "accent": "#318f7f",
+     "accent2": "#7d6f31",
+     "auto": true,
+     "bg": "#d9d5c0",
+     "ink": "#318f7f"
+    },
+    "fx": {
+     "bloom": 0,
+     "blur": 0.68,
+     "dither": 0,
+     "glowText": false,
+     "grain": 0.33,
+     "master": 1,
+     "paper": 0.37,
+     "rgb": 0,
+     "riso": 0.76,
+     "slit": 0,
+     "sort": 0,
+     "target": "name",
+     "wave": 0.16,
+     "xerox": 0
+    },
+    "layout": {
+     "extrasStyle": "text",
+     "frame": "none",
+     "iScale": 1.09,
+     "kind": "bottomline",
+     "lScale": 0.89,
+     "lineupColor": "accent",
+     "tilt": 0,
+     "wScale": 0.99
+    },
+    "seeds": {
+     "art": 3829448053,
+     "colour": 3440190226,
+     "fx": 2821746953,
+     "layout": 4269686655,
+     "type": 2344761526
+    },
+    "type": {
+     "info": "b:Space Mono:700",
+     "lineup": "b:Geist:400",
+     "op": {
+      "date": 1,
+      "info": 1,
+      "lineup": 1,
+      "name": 1
+     },
+     "pool": "all",
+     "stretch": 1,
+     "tracking": 0.19,
+     "wStyle": "pills",
+     "wordmark": "g:Unbounded"
+    },
+    "vibe": {
+     "chaos": 0.56,
+     "harsh": 0.28,
+     "night": 0.18
+    }
+   },
+   "name": "look 37"
+  },
+  {
+   "at": "2026-11-24T21:31:52.962Z",
+   "id": "ptbdncf8h",
+   "look": {
+    "art": {
+     "duotone": false,
+     "kind": "upload",
+     "mask": "blob",
+     "opacity": 0.83,
+     "overlay": "scribble",
+     "photoFx": "lowpoly",
+     "px": 0,
+     "py": 0,
+     "scale": 0.89,
+     "stamp": "random",
+     "stampColor": "#31806b",
+     "stampFrame": "auto",
+     "stampInk": "palette",
+     "stampPos": 0,
+     "stampSeed": 171492299,
+     "stampSize": 1,
+     "stampStyle": "auto"
+    },
+    "colour": {
+     "accent": "#2a8574",
+     "accent2": "#9a7638",
+     "auto": true,
+     "bg": "#cdb9bd",
+     "ink": "#1a2c2b"
+    },
+    "fx": {
+     "bloom": 0,
+     "blur": 0.53,
+     "dither": 0,
+     "glowText": false,
+     "grain": 0.4,
+     "master": 1,
+     "paper": 0.44,
+     "rgb": 0,
+     "riso": 0.87,
+     "slit": 0,
+     "sort": 0,
+     "target": "name",
+     "wave": 0.19,
+     "xerox": 0
+    },
+    "layout": {
+     "extrasStyle": "text",
+     "frame": "none",
+     "iScale": 1.65,
+     "kind": "bottomline",
+     "lScale": 1,
+     "lineupColor": "accent",
+     "tilt": -2,
+     "wScale": 1
+    },
+    "seeds": {
+     "art": 1649852610,
+     "colour": 1715629451,
+     "fx": 3264729487,
+     "layout": 544215999,
+     "type": 648951891
+    },
+    "type": {
+     "info": "g:VT323",
+     "lineup": "g:Instrument Serif",
+     "op": {
+      "date": 1,
+      "info": 1,
+      "lineup": 1,
+      "name": 1
+     },
+     "pool": "all",
+     "stretch": 1,
+     "tracking": 0.08,
+     "wStyle": "bubble",
+     "wordmark": "g:Rubik Wet Paint"
+    },
+    "vibe": {
+     "chaos": 0.56,
+     "harsh": 0.28,
+     "night": 0.18
+    }
+   },
+   "name": "look 38"
+  },
+  {
+   "at": "2026-11-24T21:34:09.176Z",
+   "id": "pb78g2j3j",
+   "look": {
+    "art": {
+     "duotone": false,
+     "kind": "stairs",
+     "mask": "full",
+     "opacity": 0.97,
+     "overlay": "none",
+     "photoFx": "none",
+     "px": 0,
+     "py": 0,
+     "scale": 1.01,
+     "stamp": "figure",
+     "stampAnchor": {
+      "ang": 0.040825129710137846,
+      "d": -0.0820014627930682,
+      "edge": "top",
+      "fx": -1.3296404118853369,
+      "idx": 8,
+      "to": "info"
+     },
+     "stampColor": "#8ccd4b",
+     "stampFrame": "oval",
+     "stampInk": "custom",
+     "stampPos": 0,
+     "stampSeed": 828201302,
+     "stampSize": 0.56,
+     "stampStyle": "auto"
+    },
+    "colour": {
+     "accent": "#d0237b",
+     "accent2": "#8fd14f",
+     "auto": true,
+     "bg": "#121318",
+     "ink": "#93d65a"
+    },
+    "fx": {
+     "bloom": 0.33,
+     "blur": 0.64,
+     "dither": 0,
+     "glowText": false,
+     "grain": 0.17,
+     "master": 1,
+     "paper": 0.51,
+     "rgb": 0,
+     "riso": 0,
+     "slit": 0,
+     "sort": 0,
+     "target": "name",
+     "wave": 0.2,
+     "xerox": 0
+    },
+    "layout": {
+     "extrasStyle": "text",
+     "frame": "none",
+     "iScale": 1,
+     "kind": "masthead",
+     "lScale": 1,
+     "lineupColor": "ink",
+     "tilt": 0,
+     "wScale": 1
+    },
+    "seeds": {
+     "art": 1281931389,
+     "colour": 2187816474,
+     "fx": 3176024692,
+     "layout": 428831021,
+     "type": 3301925081
+    },
+    "type": {
+     "info": "b:Geist:400",
+     "lineup": "g:Archivo Narrow",
+     "op": {
+      "date": 1,
+      "info": 1,
+      "lineup": 1,
+      "name": 1
+     },
+     "pool": "all",
+     "stretch": 1,
+     "tracking": 0.12,
+     "wStyle": "split",
+     "wordmark": "b:Space Mono:700"
+    },
+    "vibe": {
+     "chaos": 0,
+     "harsh": 0,
+     "night": 1
+    }
+   },
+   "name": "look 39"
+  },
+  {
+   "at": "2026-11-24T21:34:26.381Z",
+   "id": "p6szab7m5",
+   "look": {
+    "art": {
+     "duotone": false,
+     "kind": "none",
+     "mask": "full",
+     "opacity": 0.74,
+     "overlay": "none",
+     "photoFx": "redflash",
+     "px": 0,
+     "py": 0,
+     "scale": 0.93,
+     "stamp": "random",
+     "stampAnchor": {
+      "ang": 0.07088413175195456,
+      "d": 0.12019468654434248,
+      "edge": "bottom",
+      "fx": -0.2598694330221639,
+      "idx": 0,
+      "to": "info"
+     },
+     "stampColor": "#8ccd4b",
+     "stampFrame": "auto",
+     "stampInk": "random",
+     "stampPos": 0,
+     "stampSeed": 600878757,
+     "stampSize": 1,
+     "stampStyle": "auto"
+    },
+    "colour": {
+     "accent": "#7cc664",
+     "accent2": "#7cc98c",
+     "auto": true,
+     "bg": "#111810",
+     "ink": "#e6ebe3"
+    },
+    "fx": {
+     "bloom": 0,
+     "blur": 0.76,
+     "dither": 0,
+     "glowText": false,
+     "grain": 0.3,
+     "master": 1,
+     "paper": 0.41,
+     "rgb": 0,
+     "riso": 0.96,
+     "slit": 0,
+     "sort": 0,
+     "target": "name",
+     "wave": 0.11,
+     "xerox": 0
+    },
+    "layout": {
+     "extrasStyle": "text",
+     "frame": "border",
+     "iScale": 1,
+     "kind": "bottomline",
+     "lScale": 1,
+     "lineupColor": "accent",
+     "tilt": 0,
+     "wScale": 1
+    },
+    "seeds": {
+     "art": 316111486,
+     "colour": 307031794,
+     "fx": 1702714647,
+     "layout": 1662861542,
+     "type": 2725087046
+    },
+    "type": {
+     "info": "g:IBM Plex Mono",
+     "lineup": "g:Fraunces",
+     "op": {
+      "date": 1,
+      "info": 1,
+      "lineup": 1,
+      "name": 1
+     },
+     "pool": "all",
+     "stretch": 1,
+     "tracking": 0.12,
+     "wStyle": "shadow",
+     "wordmark": "g:Unbounded"
+    },
+    "vibe": {
+     "chaos": 0,
+     "harsh": 0,
+     "night": 1
+    }
+   },
+   "name": "look 40"
   }
  ],
  "palettes": []
