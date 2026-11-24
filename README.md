@@ -1,0 +1,35 @@
+# Basement Poster Machine
+
+A generative poster tool for [@basement.ldn](https://instagram.com/basement.ldn) parties. Type in the lineup once, shuffle until the vibe feels right, and download matching posters for print and Instagram.
+
+**Try it:** https://posle-zavtra.github.io/basement-poster-machine/
+
+## What it does
+
+- **One set of party details, every format:** A4 print (PDF/PNG), Instagram post (1080×1350) and Instagram story (1080×1920), all matching.
+- **Shuffle with a mood:** day ↔ night, soft ↔ harsh and clean ↔ chaos sliders steer 12 layouts, dozens of fonts, generative art and effects.
+- **Lock what you like:** keep a section fixed while the rest reshuffles.
+- **Like / dislike:** the shuffle learns what you like. Liked looks are saved so you can come back to them.
+- **Poster codes:** copy a code to reuse a look later with a new lineup.
+- **Stairs seal:** the Basement stairs carved like a hanko seal (steps, hollow, blocks, walker, door, spiral, ladder, rope ladder, two flights, arrow), framed or as a bare stamp, in red, black, white, indigo, gold or the palette, placed in the emptiest part of the poster.
+- **Photo looks:** low poly, overexposed flash and red flash.
+- **Your own photos and fonts:** drop them in. They stay in your browser.
+
+## Two modes
+
+- **For DJs** (default): the look arrives exactly as the designer sent it. DJs fill in the party, add their photo, and tweak the frame, vibe, colours (from the designer's colour presets), marks on top, effects within a small range and distortion. Fonts and layout stay as designed. **Shuffle** goes through the curated looks, **all looks** opens the full list, **♥ like** keeps favourites on that device.
+- **For designers**: the full controls, shuffle, likes and fonts. On this public site the designer mode is shown but doesn't open; it only works in the private version.
+
+The curated looks are in `DJ_BUILTIN` in `src/src.html` plus `djlooks.json`, which is synced from the private version. The public files carry no photos, and the brush-loop scans used around the date are left out (the code draws its own loops instead).
+
+## Use
+
+Open `index.html` in any browser, or use the link above. There's nothing to install. In designer mode (private version), press **space** to shuffle, **L** to like and **X** to skip.
+
+## Fonts
+
+Only the open-licence fonts [Geist](https://github.com/vercel/geist-font) and [Space Mono](https://github.com/googlefonts/spacemono) are bundled (SIL OFL, see `fonts/`). The other built-in fonts load from Google Fonts. Please don't commit commercial fonts here: load them in the tool instead.
+
+## Editing
+
+The source is `src/src.html`. Run `python3 src/build.py` to rebuild `index.html` with the fonts embedded.
