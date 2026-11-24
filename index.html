@@ -14,8 +14,7 @@ html,body{margin:0;height:100%}
 body{font:11px/1.4 'Space Mono',ui-monospace,monospace;color:var(--b);background:var(--bg);display:grid;grid-template-columns:400px 1fr;height:100vh;overflow:hidden}
 #panel{border-right:1px solid var(--b);overflow-y:auto;padding:12px 12px 60px;scrollbar-width:thin}
 #brand{display:flex;justify-content:space-between;align-items:flex-end;border:1px solid var(--b);padding:10px;margin-bottom:10px}
-#brand b{font-family:'Geist';font-weight:900;font-size:24px;letter-spacing:-.02em;line-height:.9;display:flex;flex-direction:column}#brand b i{font-style:normal;border-bottom:2px solid var(--b);padding-bottom:1px;width:max-content}#brand b i:nth-child(2){margin-left:18px}#brand b i:nth-child(3){margin-left:36px;border-bottom:0}
-#brand span{font-size:10px;text-align:right}
+#brand b{font-family:'Geist';font-weight:900;font-size:24px;letter-spacing:-.02em;line-height:.9;display:flex;flex-direction:column}#brand b i{font-style:normal;width:max-content}#brand span{font-size:10px;text-align:right}
 .sec{border:1px solid var(--b);margin-bottom:10px}
 .sec h2{display:flex;align-items:center;justify-content:space-between;margin:0;padding:4px 4px 4px 8px;font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;border-bottom:1px solid var(--b)}
 .sec h2 .hb{display:flex;gap:4px}
@@ -259,6 +258,8 @@ let S=deepMerge(clone(DEFAULT),ls.get('bpm-state'));S.prefs.pool=[];
 let artImg=null,artImgURL=null;
 let viewMode=ls.get('bpm-view2')||'a4';
 
+/* blackletter is never set in capitals: the caps run together and the word stops reading */
+const BLACKLETTER=/Unifraktur|Pirata One|Jacquard|Grenze Gotisch|Fraktur|Blackletter/i;
 function derive(S){
   const d=S.data;const cs=(t,m)=>m==='upper'?t.toUpperCase():m==='lower'?t.toLowerCase():t;
   let dateLong='',big=null;
@@ -270,7 +271,7 @@ function derive(S){
   let dShort='';if(d.date&&/^\d{4}-\d{2}-\d{2}$/.test(d.date)){const[,m,dd]=d.date.split('-').map(Number);const o=dd%100>10&&dd%100<14?'th':['th','st','nd','rd'][dd%10]||'th';dShort=`${dd}${o} ${MONTHS[m-1]}`}
   const whenShort=[dShort,d.end?`${t24(d.start)} – ${t24(d.end)}`:(d.start?`from ${t24(d.start)}`:'')].filter(Boolean).join(d.end?', ':' ');
   const ex=(d.extras||'').split('\n').map(s=>s.trim()).filter(Boolean),stick=S.layout.extrasStyle==='stickers';
-  return{kicker:(d.kicker||'').trim(),title:cs((d.title||'').trim()||'Basement',d.titleCase),extras:stick?[]:ex,stickers:stick?ex:[],
+  return{kicker:(d.kicker||'').trim(),title:cs((d.title||'').trim()||'Basement',d.titleCase==='upper'&&BLACKLETTER.test(S.type.wordmark||'')?'asis':d.titleCase),extras:stick?[]:ex,stickers:stick?ex:[],
     lineup:(d.lineup||'').split('\n').map(s=>cs(s.trim(),d.lineupCase)).filter(Boolean),eventType:(d.eventType||'').trim(),when,whenShort,venue:(d.venue||'').trim(),address:(d.address||'').trim(),
     topLeft:[d.eventType,when].map(s=>(s||'').trim()).filter(Boolean),topRight:[d.venue,d.address].map(s=>(s||'').trim()).filter(Boolean),handle:(d.handle||'').trim(),big};
 }
@@ -415,8 +416,9 @@ echo(ctx,W,H,s,S,K){
     for(const t of r){ctx.fillStyle=P.accent;ctx.fillRect(x,y,t.w,rowH);txt(ctx,t.n,x+pad,y+rowH*.72,{f:fl,size:tS,fill:P.bg});x+=t.w+gap}})});
   const N=3+Math.floor(rng(S.seeds.layout,'echoN')()*3),regH=tagTop-gap*2-topY;
   const wm=wordmark(ctx,D.title,maxW*.8*S.layout.wScale,regH/(1+(N-1)*.62),S);
-  const stepX=(maxW-wm.w)/Math.max(1,N-1),stepY=(regH-wm.h)/Math.max(1,N-1);
-  nops.push(()=>{for(let i=0;i<N;i++){const cx=s.R-wm.w/2-i*stepX,top=topY+i*stepY;wm.draw(cx,top,i%2?{style:'outline',color:P.accent2}:{})}});
+  // rows stay a tight stack (a word that runs out of width gets short, and spreading it over the page leaves holes); the stack sits in the middle of the free space
+  const stepX=(maxW-wm.w)/Math.max(1,N-1),stepY=Math.min((regH-wm.h)/Math.max(1,N-1),wm.h*.8),y0=topY+(regH-wm.h-(N-1)*stepY)/2;
+  nops.push(()=>{for(let i=0;i<N;i++){const cx=s.R-wm.w/2-i*stepX,top=y0+i*stepY;wm.draw(cx,top,i%2?{style:'outline',color:P.accent2}:{})}});
   return{artBox:null,draw:()=>ops.forEach(f=>f()),nameDraw:()=>nops.forEach(f=>f())};
 },
 wall(ctx,W,H,s,S,K){
@@ -836,7 +838,7 @@ const ART={
       const cols=Math.ceil(w/c)+1,rows=Math.ceil(h/c)+1,tone=[P.accent,P.accent];
       for(let j=0;j<rows;j++)for(let i=0;i<cols;i++){const x=i*c,y=j*c,t=j%2?1:0;o.save();o.translate(x+c/2,y+c/2);o.rotate(t*Math.PI/2);o.translate(-c/2,-c/2);
         o.fillStyle=tone[(i+j+t)%3];o.beginPath();o.moveTo(0,c);o.lineTo(0,c*2/3);o.lineTo(c/3,c*2/3);o.lineTo(c/3,c/3);o.lineTo(c*2/3,c/3);o.lineTo(c*2/3,0);o.lineTo(c,0);o.lineTo(c,c);o.closePath();o.fill();o.restore()}}},
-  upload(o,w,h,P,R,u,S){const im=((MODE!=='dj'||(S.dj&&S.dj.img))&&artImg)||djPhoto(S)||artImg;if(!im){ART.blobs(o,w,h,P,R,u,S);return}const k=S.art.scale,ir=im.width/im.height;let dw,dh;if(ir>w/h){dh=h*k;dw=dh*ir}else{dw=w*k;dh=dw/ir}
+  upload(o,w,h,P,R,u,S){const dj=MODE==='dj'&&S.dj&&S.dj.base,im=dj?((S.dj.img&&artImg)||djPhoto(S)):(artImg||djPhoto(S));if(!im){if(!dj)ART.blobs(o,w,h,P,R,u,S);return}const k=S.art.scale,ir=im.width/im.height;let dw,dh;if(ir>w/h){dh=h*k;dw=dh*ir}else{dw=w*k;dh=dw/ir}
     const ox=(S.art.px||0)*Math.abs(dw-w)/2,oy=(S.art.py||0)*Math.abs(dh-h)/2;o.drawImage(im,(w-dw)/2+ox,(h-dh)/2+oy,dw,dh);
     const pf=S.art.photoFx;if(pf&&PHOTOFX[pf])PHOTOFX[pf](o,w,h,rng(S.seeds.art,'pfx'));
     if(S.art.duotone&&pf!=='flash'&&pf!=='redflash'){const id=o.getImageData(0,0,w,h),d=id.data,a=hexToRgb(mix(P.bg,'#000000',.35)),b=hexToRgb(P.accent2),c=hexToRgb(P.accent);
@@ -1490,7 +1492,7 @@ async function rate(verdict){
   if(verdict==='like')status(`liked · ${n} like${n>1?'s':''} so far`);else{status('noted, shuffling');shuffle('all')}
 }
 async function removeFeedback(id){FEEDBACK=FEEDBACK.filter(r=>r.id!==id);rebuildTaste();renderLikes();fbLocal.set(FEEDBACK.slice().reverse());if(DB){try{await DB.collection('feedback').doc(id).delete()}catch(e){}}}
-function applyLook(r){if(MODE==='dj'){S.dj=Object.assign(clone(DEFAULT.dj),{id:'code',base:clone(r.look),img:S.dj.img||null});lookCase(r.look);applyDj();sync();commit(true);renderDjGrid();status('look restored');return}const L=clone(r.look);for(const k of['layout','type','colour','art','fx','seeds','vibe'])if(L[k])S[k]=deepMerge(clone(DEFAULT[k]||{}),L[k]);if(L.case)lookCase(L);S.gfx=L.gfx||null;sync();commit(true);status('look restored')}
+function applyLook(r){if(MODE==='dj'){S.dj=Object.assign(clone(DEFAULT.dj),{id:'code',base:clone(r.look),img:null});lookCase(r.look);applyDj();sync();commit(true);renderDjGrid();status('look restored');return}const L=clone(r.look);for(const k of['layout','type','colour','art','fx','seeds','vibe'])if(L[k])S[k]=deepMerge(clone(DEFAULT[k]||{}),L[k]);if(L.case)lookCase(L);S.gfx=L.gfx||null;sync();commit(true);status('look restored')}
 let likesEl=null,tasteEl=null;
 function renderLikes(){if(!likesEl)return;const likes=FEEDBACK.filter(r=>r.verdict==='like'),dis=FEEDBACK.length-likes.length;
   if(tasteEl)tasteEl.textContent=`${likes.length} like${likes.length===1?'':'s'} · ${dis} dislike${dis===1?'':'s'}${tasteOn()?' · shuffle is learning':''}`;
@@ -1640,7 +1642,7 @@ const fxEff=(f,k)=>clamp((f[k]||0)*f.master,0,1.2);
 const fxMax=b=>clamp(Math.max(b*1.6,b+.2),.2,1.2);// how far DJs may push an effect beyond the look
 function lookCase(L){const c=(L&&L.case)||{};S.data.titleCase=c.title||'asis';S.data.lineupCase=c.lineup||'asis'}
 function applyDj(){const d=S.dj;if(!d.base)return;Object.assign(S,djLookFrom(d.base,d))}
-function djUse(p,quiet){S.dj=Object.assign(clone(DEFAULT.dj),{id:p.id,base:clone(p.look),img:S.dj.img||null});lookCase(p.look);applyDj();sync();commit(true);renderDjGrid();if(!quiet)status(p.name||'look')}
+function djUse(p,quiet){S.dj=Object.assign(clone(DEFAULT.dj),{id:p.id,base:clone(p.look),img:null});lookCase(p.look);applyDj();sync();commit(true);renderDjGrid();if(!quiet)status(p.name||'look')}
 function djSet(k,v,snap=false){S.dj[k]=v;applyDj();sync();commit(snap)}
 function djShuffle(){const ps=djPresets();if(!ps.length)return;const ids=new Set(ps.map(p=>p.id));
   // a shuffled deck: every look comes up once before any repeats
